@@ -1,5 +1,7 @@
 import Link from "next/link";
+/* eslint-disable @next/next/no-img-element */
 import { Avatar } from "@/components/ui/avatar";
+import { LoveButton } from "@/features/activity/love-button";
 import type { ActivityFeed as ActivityFeedData, ActivityScope } from "@/lib/activity";
 import { formatDuration } from "@/lib/sessions/format";
 
@@ -48,6 +50,8 @@ export function ActivityFeed({ data, scope }: { data: ActivityFeedData; scope: A
             <p className="mt-2 text-base text-ink">Studied <strong>{item.goalName}</strong></p>
             <p className="mt-1 text-xs text-muted">{date.format(new Date(item.completedAt))}{item.rating ? ` · ${item.rating}/5` : ""}</p>
             {item.sharedNotes && <div className="mt-4 max-w-2xl border-t border-line pt-4"><p className="text-sm leading-6 text-ink">{item.sharedNotes}</p></div>}
+            {item.reflectionPhotoUrl && <img alt={`${item.displayName}’s shared study reflection`} className="mt-4 max-h-[28rem] w-full max-w-2xl rounded-field object-cover" loading="lazy" src={item.reflectionPhotoUrl}/>}
+            <div className="mt-3">{item.canLove ? <LoveButton count={item.loveCount} initiallyLoved={item.isLoved} sessionId={item.id}/> : <p className="min-h-11 py-3 text-xs text-muted">{item.loveCount} {item.loveCount===1?"love":"loves"}</p>}</div>
           </div>
           <strong className="col-start-2 row-start-2 self-start text-lg tabular text-ink sm:col-start-3 sm:row-start-1 sm:text-base">{formatDuration(item.durationSeconds)}</strong>
         </article>

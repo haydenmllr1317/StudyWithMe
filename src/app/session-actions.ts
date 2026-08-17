@@ -79,12 +79,13 @@ export async function saveReflectionAction(_state: SessionActionState, formData:
   const rawRating = String(formData.get("rating") ?? "");
   const rating = rawRating ? Number(rawRating) : null;
   const shareNotes = formData.get("shareNotes") === "on";
-  if (!/^[0-9a-f-]{36}$/i.test(sessionId) || notes.length > 5000 || (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5))) {
+  const reflectionPhotoPath = String(formData.get("reflectionPhotoPath") ?? "") || null;
+  if (!/^[0-9a-f-]{36}$/i.test(sessionId) || notes.length > 5000 || (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5)) || (reflectionPhotoPath && !reflectionPhotoPath.includes(`/${sessionId}/reflection-`))) {
     return { status: "error", message: "Check your notes and rating, then try again." };
   }
   const { supabase, authenticated } = await authenticatedClient();
   if (!authenticated) return { status: "error", message: "Your session expired. Sign in again and retry." };
-  const { data, error } = await supabase.rpc("update_study_session_reflection", { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_share_notes: shareNotes });
+  const { data, error } = await supabase.rpc("update_study_session_reflection", { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_share_notes: shareNotes, p_reflection_photo_path: reflectionPhotoPath });
   if (error || !data) return { status: "error", message: "Your session is saved, but the reflection could not be updated. Try again." };
   refreshSessionPages();
   return { status: "success", message: "Reflection saved.", session: data };
@@ -94,8 +95,10 @@ export async function deleteCompletedSessionAction(_state: SessionActionState, f
   const sessionId = String(formData.get("sessionId") ?? "");
   const { supabase, authenticated } = await authenticatedClient();
   if (!authenticated || !/^[0-9a-f-]{36}$/i.test(sessionId)) return { status: "error", message: "This session could not be deleted." };
+  const existing = await supabase.from("study_sessions").select("reflection_photo_path").eq("id",sessionId).maybeSingle();
   const { data, error } = await supabase.rpc("delete_completed_study_session", { p_session_id: sessionId });
   if (error || !data) return { status: "error", message: "Nothing was deleted. Refresh and try again." };
+  if (existing.data?.reflection_photo_path) await supabase.storage.from("reflection-photos").remove([existing.data.reflection_photo_path]);
   refreshSessionPages();
   return { status: "success", message: "Session deleted and totals recalculated." };
 }

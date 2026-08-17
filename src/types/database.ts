@@ -112,6 +112,39 @@ export type Database = {
         }
         Relationships: []
       }
+      session_loves: {
+        Row: {
+          created_at: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_loves_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "study_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_loves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       study_goals: {
         Row: {
           created_at: string
@@ -168,8 +201,9 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
-          share_notes: boolean
+          reflection_photo_path: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          share_notes: boolean
           started_at: string
           updated_at: string
           user_id: string
@@ -185,8 +219,9 @@ export type Database = {
           paused_seconds?: number
           pomodoro_minutes?: number | null
           rating?: number | null
-          share_notes?: boolean
+          reflection_photo_path?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
+          share_notes?: boolean
           started_at: string
           updated_at?: string
           user_id: string
@@ -202,8 +237,9 @@ export type Database = {
           paused_seconds?: number
           pomodoro_minutes?: number | null
           rating?: number | null
-          share_notes?: boolean
+          reflection_photo_path?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
+          share_notes?: boolean
           started_at?: string
           updated_at?: string
           user_id?: string
@@ -250,8 +286,9 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
-          share_notes: boolean
+          reflection_photo_path: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          share_notes: boolean
           started_at: string
           updated_at: string
           user_id: string
@@ -280,7 +317,12 @@ export type Database = {
       get_my_study_groups: { Args: never; Returns: Json }
       get_personal_history_stats: { Args: { p_days?: number }; Returns: Json }
       get_study_analytics: {
-        Args: { p_group_id?: string | null; p_limit?: number; p_range?: string; p_scope?: string }
+        Args: {
+          p_group_id?: string
+          p_limit?: number
+          p_range?: string
+          p_scope?: string
+        }
         Returns: Json
       }
       get_study_group: {
@@ -293,6 +335,10 @@ export type Database = {
           duration_seconds: number
           goal_id: string
         }[]
+      }
+      get_visible_reflection_photo: {
+        Args: { p_session_id: string }
+        Returns: string
       }
       is_username_available: { Args: { candidate: string }; Returns: boolean }
       join_study_group: { Args: { p_token: string }; Returns: string }
@@ -310,8 +356,9 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
-          share_notes: boolean
+          reflection_photo_path: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          share_notes: boolean
           started_at: string
           updated_at: string
           user_id: string
@@ -346,8 +393,9 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
-          share_notes: boolean
+          reflection_photo_path: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          share_notes: boolean
           started_at: string
           updated_at: string
           user_id: string
@@ -376,8 +424,9 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
-          share_notes: boolean
+          reflection_photo_path: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          share_notes: boolean
           started_at: string
           updated_at: string
           user_id: string
@@ -389,37 +438,100 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      update_study_session_reflection: {
-        Args: {
-          p_notes: string
-          p_rating: number
-          p_session_id: string
-          p_share_notes: boolean
-        }
-        Returns: {
-          created_at: string
-          duration_seconds: number | null
-          ended_at: string | null
-          goal_id: string | null
-          id: string
-          notes: string | null
-          paused_at: string | null
-          paused_seconds: number
-          pomodoro_minutes: number | null
-          rating: number | null
-          share_notes: boolean
-          session_type: Database["public"]["Enums"]["session_type"]
-          started_at: string
-          updated_at: string
-          user_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "study_sessions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      toggle_session_love: { Args: { p_session_id: string }; Returns: boolean }
+      update_study_session_reflection:
+        | {
+            Args: { p_notes: string; p_rating: number; p_session_id: string }
+            Returns: {
+              created_at: string
+              duration_seconds: number | null
+              ended_at: string | null
+              goal_id: string | null
+              id: string
+              notes: string | null
+              paused_at: string | null
+              paused_seconds: number
+              pomodoro_minutes: number | null
+              rating: number | null
+              reflection_photo_path: string | null
+              session_type: Database["public"]["Enums"]["session_type"]
+              share_notes: boolean
+              started_at: string
+              updated_at: string
+              user_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "study_sessions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_notes: string
+              p_rating: number
+              p_session_id: string
+              p_share_notes: boolean
+            }
+            Returns: {
+              created_at: string
+              duration_seconds: number | null
+              ended_at: string | null
+              goal_id: string | null
+              id: string
+              notes: string | null
+              paused_at: string | null
+              paused_seconds: number
+              pomodoro_minutes: number | null
+              rating: number | null
+              reflection_photo_path: string | null
+              session_type: Database["public"]["Enums"]["session_type"]
+              share_notes: boolean
+              started_at: string
+              updated_at: string
+              user_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "study_sessions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_notes: string
+              p_rating: number
+              p_reflection_photo_path: string
+              p_session_id: string
+              p_share_notes: boolean
+            }
+            Returns: {
+              created_at: string
+              duration_seconds: number | null
+              ended_at: string | null
+              goal_id: string | null
+              id: string
+              notes: string | null
+              paused_at: string | null
+              paused_seconds: number
+              pomodoro_minutes: number | null
+              rating: number | null
+              reflection_photo_path: string | null
+              session_type: Database["public"]["Enums"]["session_type"]
+              share_notes: boolean
+              started_at: string
+              updated_at: string
+              user_id: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "study_sessions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
     }
     Enums: {
       group_role: "owner" | "member"

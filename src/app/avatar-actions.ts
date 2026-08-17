@@ -7,8 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 export type AvatarActionState = { avatarPath?: string | null; message?: string; success?: string };
 export const initialAvatarState: AvatarActionState = {};
 
-const allowedTypes = new Map([["image/jpeg", "jpg"], ["image/png", "png"], ["image/webp", "webp"]]);
-
 async function authenticatedProfile() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
@@ -18,27 +16,14 @@ async function authenticatedProfile() {
   return { profile, supabase, userId };
 }
 
-export async function uploadAvatarAction(_state: AvatarActionState, formData: FormData): Promise<AvatarActionState> {
+export async function finalizeAvatarAction(path: string): Promise<AvatarActionState> {
   const context = await authenticatedProfile();
   if (!context) return { message: "Log in again to change your photo." };
   if (context.profile.error) return { message: "Your profile could not be loaded. Try again." };
-  const file = formData.get("avatar");
-  if (!(file instanceof File) || !file.size) return { message: "Choose a photo to upload." };
-  const extension = allowedTypes.get(file.type);
-  if (!extension) return { message: "Choose a JPEG, PNG, or WebP image." };
-  if (file.size > 4 * 1024 * 1024) return { message: "Choose an image smaller than 4 MB." };
-
-  const path = `${context.userId}/avatar-${crypto.randomUUID()}.${extension}`;
-  const uploaded = await context.supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
-    cacheControl: "31536000",
-    contentType: file.type,
-    upsert: false,
-  });
-  if (uploaded.error) return { message: "The photo could not be uploaded. Try again." };
+  if (!avatarBelongsToUser(path, context.userId)) return { message: "The uploaded photo path is invalid." };
 
   const updated = await context.supabase.from("profiles").update({ avatar_url: path }).eq("id", context.userId);
   if (updated.error) {
-    await context.supabase.storage.from(AVATAR_BUCKET).remove([path]);
     return { message: "The photo uploaded, but your profile could not be updated." };
   }
   const previous = context.profile.data?.avatar_url;

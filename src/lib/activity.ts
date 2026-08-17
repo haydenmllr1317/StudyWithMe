@@ -13,6 +13,11 @@ export type ActivityItem = {
   rating: number | null;
   sharedNotes: string | null;
   notesShared: boolean;
+  reflectionPhotoPath: string | null;
+  reflectionPhotoUrl?: string | null;
+  loveCount: number;
+  isLoved: boolean;
+  canLove: boolean;
   isCurrentUser: boolean;
 };
 export type ActivityFeed = {
@@ -60,6 +65,10 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
       rating,
       sharedNotes: typeof item.sharedNotes === "string" ? item.sharedNotes : null,
       notesShared: item.notesShared === true,
+      reflectionPhotoPath: typeof item.reflectionPhotoPath === "string" ? item.reflectionPhotoPath : null,
+      loveCount: Math.max(0, Number(item.loveCount) || 0),
+      isLoved: item.isLoved === true,
+      canLove: item.canLove === true,
       isCurrentUser: item.isCurrentUser === true,
     }];
   });

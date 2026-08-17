@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { finishSessionAction, pauseSessionAction, resumeSessionAction, saveReflectionAction, startSessionAction, type SessionActionState } from "@/app/session-actions";
+import { finishSessionAction, pauseSessionAction, resumeSessionAction, startSessionAction, type SessionActionState } from "@/app/session-actions";
 import { Button } from "@/components/ui/button";
 import { formatClock, formatDuration } from "@/lib/sessions/format";
+import { ReflectionForm } from "@/features/sessions/reflection-form";
 import type { Tables } from "@/types/database";
 
 type GoalOption = Pick<Tables<"study_goals">, "id" | "name">;
@@ -42,8 +43,7 @@ function StartPanel({ goals }: { goals: GoalOption[] }) {
 }
 
 function Reflection({ session, goalName, onDone }: { session: Tables<"study_sessions">; goalName: string; onDone: () => void }) {
-  const [state, action] = useActionState(saveReflectionAction, initialSessionActionState);
-  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Session complete</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(session.duration_seconds ?? 0)} with {goalName}</h2><p className="mt-2 text-sm text-muted">The session is already saved. Add a reflection now, or leave it for later.</p><form action={action} className="mt-6"><input name="sessionId" type="hidden" value={session.id} /><label className="text-sm font-semibold text-ink">Notes <span className="font-normal text-muted">(optional)</span><textarea className="field mt-2 min-h-28 resize-y" maxLength={5000} name="notes" placeholder="What clicked? What will you return to?" /></label><label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm text-ink"><input className="mt-1 size-4 accent-coral" name="shareNotes" type="checkbox" /><span><span className="font-semibold">Share these notes with Activity</span><span className="mt-0.5 block text-xs leading-5 text-muted">Off by default. Your session still appears without the notes.</span></span></label><fieldset className="mt-5"><legend className="text-sm font-semibold text-ink">How did it feel? <span className="font-normal text-muted">(optional)</span></legend><div className="mt-2 flex flex-wrap gap-2">{[1, 2, 3, 4, 5].map((rating) => <label className="cursor-pointer" key={rating}><input className="peer sr-only" name="rating" type="radio" value={rating} /><span className="grid size-11 place-items-center rounded-full border border-line bg-white text-sm font-semibold text-muted peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white">{rating}</span></label>)}</div></fieldset><div className="mt-6 flex flex-wrap items-center gap-4"><PendingButton>Save reflection</PendingButton><button className="min-h-11 text-sm font-semibold text-muted hover:text-ink" onClick={onDone} type="button">Not now</button></div>{state.message && <p aria-live="polite" className={`mt-3 text-sm ${state.status === "error" ? "text-coral-dark" : "text-moss-dark"}`}>{state.message}</p>}</form></section>;
+  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Session complete</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(session.duration_seconds ?? 0)} with {goalName}</h2><p className="mt-2 text-sm text-muted">Your study time is already safe. Add a reflection, or finish without one.</p><ReflectionForm onSaved={onDone} sessionId={session.id}/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink" onClick={onDone} type="button">Not now</button></section>;
 }
 
 function ActivePanel({ session }: { session: ActiveSession }) {

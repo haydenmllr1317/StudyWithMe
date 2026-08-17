@@ -72,6 +72,8 @@ The current release-readiness migration restricts full profile reads to the owni
 
 Profile photos use the public-read `avatars` Storage bucket created by the avatar migration. Writes are authenticated and folder-scoped by Storage RLS; `profiles.avatar_url` stores only the relative object path. Apply pending migrations before testing photo uploads.
 
+Session reflection photos use a separate private `reflection-photos` bucket. Access follows the session’s current Activity-sharing flag and is checked on every image request. The same migration adds the normalized `session_loves` interaction model.
+
 ## Production deployment
 
 Import the repository into Vercel with these settings:

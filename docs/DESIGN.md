@@ -97,6 +97,8 @@ Authentication is intentionally reduced to a centered StudyWithMe wordmark, requ
 
 Use the shared circular avatar primitive everywhere learner identity appears. Photos crop with `object-cover`; missing or invalid paths fall back to initials in the existing palette. Profile is the only editing surface, with Change and Remove actions kept beside the image.
 
+Session completion becomes a quiet reflection measure after duration is durably saved: rating, reflection text, one optional photo, and an explicit Activity-sharing choice lead to one “Save and finish” action. Activity keeps one restrained heart interaction below shared reflection content; it does not expand into a general social-control row.
+
 **Creative North Star: "In Concert"**
 
 StudyWithMe treats individual effort and trusted social context as parallel voices in one restrained composition. The interface feels focused, calm, polished, motivating, modern, and slightly playful: premium without becoming corporate, social without resembling social media, and competitive without aggression. Its identity is light and gender-neutral, built from warm ivory, precise ink, accessible coral, moss, and sky.
@@ -176,6 +178,8 @@ Fine one-pixel measure lines establish grouping. Sections frequently begin or en
 
 At iPhone widths, dense comparisons recompose into legible three-column rows, secondary details move onto their own line, and desktop vertical rules become horizontal divisions. At the medium breakpoint, navigation changes from a fixed five-item bottom bar with safe-area padding to a sticky desktop header. Do not create horizontal carousels or merely shrink desktop tables.
 
+Post-session reflection stays in the same single-column Today flow on mobile. Rating controls wrap without shrinking below a comfortable touch target, photo actions wrap as text actions, previews remain width-bound and cropped, and the primary save action stays visually separate from the quieter “Not now” exit.
+
 Circle is a primary destination alongside Activity. Its selector routes among Circles the learner actually belongs to; when none exist, it becomes a restrained self-only pace view with creation nearby. A Circle detail leads with private pace, then separates members from membership or owner controls in an intentionally unequal desktop split. Invitation acceptance is a narrow, centered flow that presents the Circle and its privacy terms before the join action.
 
 **The Measure, Then Space Rule.** Use lines to articulate meaningful boundaries and whitespace to establish hierarchy; do not wrap every group in a container.
@@ -234,6 +238,7 @@ Components feel restrained and precise at rest, then respond clearly through col
 - **Analytics:** History and Leaderboard share one six-option timeframe rail. Rankings and charts always use the same range. Goal totals use restrained horizontal coral, moss, and sky measures; daily totals use a thin moss SVG line with sparse date labels and an expandable textual value table. Charts remain open sections rather than nested dashboard cards.
 - **App icon:** The icon uses the ivory field with moss and coral sleeves framing two held hands. The central gesture carries togetherness at small sizes without faces, text, or study-tool clutter.
 - **Progress measures:** Render progress as thin score-like lines with small pill-ended fills. Keep charts quiet and legible; axes, labels, or adjacent values must make the information understandable without hue alone.
+- **Today pace preview:** Keep the weekly mini-leaderboard to three learners, using compact rank, avatar, identity, and duration columns. Highlight the current learner with the soft coral row treatment; if they fall outside the preview, state their position in quiet text instead of expanding the list. Empty and unavailable states remain flat between measure lines.
 
 ### Toggles and Disclosure
 
@@ -257,8 +262,19 @@ Components feel restrained and precise at rest, then respond clearly through col
 - **Structure:** Activity is a chronological score of completed sessions, rendered as open rows separated by measure lines rather than a stack of social cards.
 - **Hierarchy:** Identity leads, followed by subject and duration; time and rating remain compact metadata. A shared reflection is the final, quieter voice.
 - **Scope:** A native select switches among My Activity, Everyone, and the learner’s Circles. Circle options are membership-derived and never fabricated.
-- **Privacy:** Every completed valid session may contribute a feed-safe entry, but notes appear only after an explicit, default-off sharing choice. Activity never implies access to raw sessions or goal lists.
-- **Restraint:** No likes, comments, reactions, follower mechanics, messaging, engagement counters, or oversized feed cards.
+- **Privacy:** Every completed valid session may contribute a feed-safe entry, but reflection text and its photo appear only after an explicit, default-off sharing choice. Reflection photos remain in private storage and are delivered only through an authorized Activity route; previews and feed images use restrained rounded cropping without turning the row into an image card. Activity never implies access to raw sessions or goal lists.
+- **Love:** One compact heart action sits below shared reflection content with a plain count, a pressed state, and an accessible label. The action uses the normal touch-target floor and reports failure next to itself; the learner’s own session shows the count without an interactive control.
+- **Restraint:** Love is the single permitted social response. Do not add comments, reaction pickers, follower mechanics, messaging, popularity sorting, celebratory animation, or oversized feed cards.
+
+### Session Reflection and Media
+
+- **Sequence:** Save positive session duration before presenting reflection. Clearly reassure the learner that their study time is already safe, then offer rating, reflection text, one optional photo, the Activity-sharing choice, and one “Save and finish” action.
+- **Rating:** Use five numbered circular controls with explicit pressed states and a quiet Clear action. Rating is optional and must remain understandable without color.
+- **Photo:** Present Add, Change, and Remove as restrained text actions beside a bounded preview. Accept common phone formats, prepare images before upload, and keep loading, failure, and retry feedback adjacent to the media controls.
+- **Sharing:** Keep “Share reflection with Activity” off by default and state plainly that both text and photo stay private unless enabled. Removing or replacing media must not jeopardize the already-saved study duration.
+- **Avatar:** Reuse the circular avatar primitive for Today pace, Activity, Leaderboard, Circles, and Profile. Crop photos consistently, preserve initials as the resilient fallback, and keep upload or removal exclusive to Profile with nearby pending and error feedback.
+
+**The Saved Time First Rule.** Reflection enriches a completed session; it never gates, delays, or risks the study time already recorded.
 
 ## Do's and Don'ts
 

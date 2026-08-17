@@ -31,6 +31,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   if (groupsResult.error) console.error("Activity Circle lookup failed", { code: groupsResult.error.code });
   if (feedResult.error) console.error("Activity feed lookup failed", { code: feedResult.error.code });
   const feed = parseActivityFeed(feedResult.data);
+  if (feed) {
+    feed.items = feed.items.map((item)=>({...item,reflectionPhotoUrl:item.reflectionPhotoPath?`/activity/photo/${item.id}`:null}));
+  }
 
   return <AppShell><div className="space-y-9">
     <PageHeading aside={<ActivityScopeSelect circles={circles} value={scope} />} title="Activity" />

@@ -76,6 +76,14 @@ The `mine` scope is limited to the caller, `everyone` includes feed-safe complet
 
 Activity uses stable `(ended_at, id)` cursor pagination and reads at most 50 rows per call; the application requests 20. Partial global and per-user cursor indexes cover completed positive-duration feed scans without indexing active or zero-duration rows.
 
+### Reflection photos and loves
+
+Completed sessions may reference one object in the private `reflection-photos` bucket through `study_sessions.reflection_photo_path`. Paths are versioned and scoped as `<owner-id>/<session-id>/reflection-<uuid>.webp`; both the reflection RPC and a database trigger enforce that ownership relationship. Upload policies require the authenticated owner and an already-completed matching session. Images are resized in the browser to at most 1600px and stored as WebP, with a 5 MB bucket limit.
+
+The Activity sharing flag governs both notes and the reflection photo. Other users receive neither path unless sharing is enabled. Images are served through an authenticated application route backed by `get_visible_reflection_photo`, which re-checks current ownership/sharing on every request; this avoids the revocation delay of expiring signed URLs when sharing is turned off. Raw session rows remain owner-only.
+
+`session_loves` uses `(session_id, user_id)` as its primary key, so duplicate loves are impossible. Direct table privileges are revoked. `toggle_session_love` derives the user from `auth.uid()`, rejects self-loves and unavailable sessions, and performs add/remove in PostgreSQL. `get_activity_feed` aggregates love count and caller state with avatar and reflection-safe fields in the same paginated RPC, avoiding per-row data queries.
+
 ## Timezones
 
 `get_personal_history_stats(days)` derives private today/week/month/all-time totals, a 30-day daily series, range-scoped goal distribution, and the current streak without returning notes or ratings. Weeks begin Monday. A qualifying streak day has at least one completed positive-duration session; the current streak may end today, or yesterday when today has no completed study yet. `delete_completed_study_session` deletes only an authenticated user’s completed row, so totals are always recalculated from source sessions.

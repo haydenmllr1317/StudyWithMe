@@ -194,7 +194,18 @@ begin
   select s.user_id,s.goal_id,s.started_at,s.ended_at,s.duration_seconds from public.study_sessions s join population p on p.user_id=s.user_id where s.ended_at is not null and s.duration_seconds>0 and s.started_at<end_at and s.ended_at>start_at
  ), first_day as (select coalesce(start_date,least(today,min((c.started_at at time zone tz)::date)),today)d from completed c),
  days as(select generate_series((select d from first_day),today,interval'1 day')::date d),
- daily as(select d.d,coalesce(sum(round(c.duration_seconds*greatest(0,extract(epoch from(least(c.ended_at,(d.d+1)::timestamp at time zone tz)-greatest(c.started_at,d.d::timestamp at time zone tz)))/greatest(1,extract(epoch from(c.ended_at-c.started_at))))),0)::bigint seconds from days d left join completed c on c.started_at<(d.d+1)::timestamp at time zone tz and c.ended_at>d.d::timestamp at time zone tz group by d.d),
+ daily as (
+  select d.d,
+    coalesce(sum(round(c.duration_seconds * greatest(0, extract(epoch from (
+      least(c.ended_at, (d.d + 1)::timestamp at time zone tz)
+      - greatest(c.started_at, d.d::timestamp at time zone tz)
+    ))) / greatest(1, extract(epoch from (c.ended_at - c.started_at))))), 0)::bigint seconds
+  from days d
+  left join completed c
+    on c.started_at < (d.d + 1)::timestamp at time zone tz
+   and c.ended_at > d.d::timestamp at time zone tz
+  group by d.d
+ ),
  named_goals as(select c.user_id,coalesce(g.name,'General study')name,round(c.duration_seconds*greatest(0,extract(epoch from(least(c.ended_at,end_at)-greatest(c.started_at,start_at))))/greatest(1,extract(epoch from(c.ended_at-c.started_at))))::bigint seconds from completed c left join public.study_goals g on g.id=c.goal_id and g.user_id=c.user_id),
  goal_groups as(select name,sum(seconds)::bigint seconds,count(distinct user_id)::int contributors from named_goals group by name),
  safe_goals as(select case when p_scope='mine'or contributors>=2 then name else'Other study'end name,sum(seconds)::bigint seconds from goal_groups group by case when p_scope='mine'or contributors>=2 then name else'Other study'end),
