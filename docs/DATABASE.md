@@ -76,7 +76,7 @@ Session lifecycle functions use database-owned start/end timestamps and derive d
 
 Leaderboard pages are dynamically rendered and call the aggregation function on navigation or reload. There is no realtime subscription or persistent application cache, so a newly finished session appears on the next Leaderboard navigation or reload.
 
-History statistics use one materialized scan of the caller's completed sessions. The current-streak calculation orders only qualifying dates and compares them with consecutive expected dates; it does not generate or rescan decades of possible days. History page reads for goals, profile timezone, statistics, and paginated sessions run concurrently.
+History statistics use one materialized scan of the caller's completed sessions. The current-streak calculation orders only qualifying dates and compares them with consecutive expected dates; it does not generate or rescan decades of possible days. The History route reads the profile timezone first, then runs goals, statistics, and the bounded session page concurrently. Session ranges begin at midnight in that IANA timezone rather than at an approximate rolling UTC-hour boundary, keeping the list aligned with database calendar statistics.
 
 ## Private groups and invitations
 

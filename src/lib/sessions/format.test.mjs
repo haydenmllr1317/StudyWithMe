@@ -12,7 +12,7 @@ test("formats open timers and longer sessions", () => {
   assert.equal(formatDuration(3900), "1h 5m");
 });
 
-test("defines the MVP Pomodoro interval as 25 minutes", () => {
+test("defines the default and supported Pomodoro intervals", () => {
   assert.equal(POMODORO_SECONDS, 1500);
   assert.deepEqual(POMODORO_LENGTHS, [25, 50]);
 });

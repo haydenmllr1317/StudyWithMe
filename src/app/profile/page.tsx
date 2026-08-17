@@ -22,5 +22,5 @@ export default async function ProfilePage() {
   if (goalsError) console.error("Authenticated goals lookup failed", { code: goalsError.code });
   const email = userData.user?.email ?? "Email unavailable";
 
-  return <AppShell><div className="space-y-9"><PageHeading title="Profile" description="Your account identity, goals, targets, and the preferences that shape your study rhythm." /><ProfileView email={email} goals={goals ?? []} profile={profile} /></div></AppShell>;
+  return <AppShell><div className="space-y-9"><PageHeading title="Profile" description="Your account identity, goals, targets, and the preferences that shape your study rhythm." />{(profileError || goalsError) && <div className="border-y border-line py-5" role="alert"><p className="font-semibold text-ink">Some profile information is unavailable.</p><p className="mt-1 text-sm text-muted">Check your connection and refresh before changing your goals.</p></div>}<ProfileView email={email} goals={goals ?? []} profile={profile} /></div></AppShell>;
 }

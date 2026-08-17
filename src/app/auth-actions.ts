@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { safeInternalPath } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
 import {
   authErrorMessage,
@@ -35,8 +36,7 @@ export async function loginAction(
   });
 
   if (error) return { message: authErrorMessage(error.code) };
-  const next = String(formData.get("next") ?? "");
-  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/today");
+  redirect(safeInternalPath(formData.get("next")));
 }
 
 export async function signupAction(

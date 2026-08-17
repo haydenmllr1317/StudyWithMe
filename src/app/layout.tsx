@@ -33,20 +33,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div
-          aria-hidden="true"
-          className="hidden"
-          dangerouslySetInnerHTML={{
-            __html: `<!--
-THESIS: In Concert makes each learner a distinct line in a shared rhythm and refuses the equal-card dashboard.
-OWN-WORLD: Warm ivory, ink, coral, moss, and sky; fine measure lines; airy sans type; rectangular controls with restrained corners.
-STORY: Begin focused work, see honest personal pacing, then feel quiet company and consistency.
-FIRST VIEWPORT: Today opens on one spacious measure with the total and coral Start Study Session action dominant; weekly and social voices sit below.
-FORM: Choral-score structure, grounded candidate 5, seed 553aff63.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
--->`,
-          }}
-        />
         <PwaStatus />{children}
       </body>
     </html>

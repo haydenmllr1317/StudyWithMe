@@ -12,6 +12,6 @@ Implementation should proceed in this order so that each layer rests on a tested
 8. **Statistics expansion** — Add richer target reporting and longer-term comparisons only when product usage justifies them.
 9. **Leaderboards and groups** — Complete for the MVP: application-wide rankings, private groups, owner-only invite management, member lifecycle, and private group leaderboards.
 10. **PWA support** — Complete for installation, icons, safe-area behavior, conservative static caching, offline status/fallback, and controlled updates. Push notifications remain deferred.
-11. **Polish and testing** — Expand accessibility, responsive, unit, integration, and end-to-end coverage; tune performance and deployment observability.
+11. **Polish and testing** — In progress: release QA, loading/error/empty states, accessibility, responsive behavior, security/privacy review, focused regression tests, and deployment documentation.
 
-The repository has completed the timer, history/statistics, and MVP social leaderboard/group phases. PWA installation and offline strategy are next.
+The repository has completed the feature-bearing MVP phases through PWA installation. Step 10 is the release-readiness pass; push notifications, native iOS work, richer statistics, and new social features remain deferred.

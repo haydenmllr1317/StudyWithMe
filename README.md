@@ -1,6 +1,6 @@
 # StudyWithMe
 
-StudyWithMe is a mobile-first social study and time-tracking application for iPhone and desktop browsers. The repository contains a polished frontend shell, Supabase authentication, user-owned study goals, persistent normal and Pomodoro sessions, personal history/statistics, application-wide rankings, and private study groups with secure invite links.
+StudyWithMe is a mobile-first social study and time-tracking application for iPhone and desktop browsers. The MVP includes Supabase authentication, user-owned study goals, persistent normal and 25/50-minute Pomodoro sessions with pause/resume, personal history/statistics, application-wide rankings, private study groups, and installable PWA support.
 
 ## Technology stack
 
@@ -13,7 +13,7 @@ StudyWithMe is a mobile-first social study and time-tracking application for iPh
 
 ## Local application
 
-Requires Node.js 22 or newer.
+Requires Node.js 22 or newer and npm. For production, select Node.js 22.x in Vercel so deployments use a deliberate, tested runtime major.
 
 ```bash
 npm install
@@ -21,13 +21,14 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Authentication and study goals require a configured Supabase project; unimplemented product areas remain clearly marked previews.
+Open [http://localhost:3000](http://localhost:3000). Product data requires a configured Supabase project.
 
 Quality checks:
 
 ```bash
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -61,6 +62,45 @@ npx supabase db reset
 
 Docker is not required to run the Next.js frontend.
 
+After applying any new migration, regenerate and commit the database types:
+
+```bash
+npx supabase gen types typescript --linked --schema public > src/types/database.ts
+```
+
+The current release-readiness migration restricts full profile reads to the owning user. Apply it before inviting real users.
+
+## Production deployment
+
+Import the repository into Vercel with these settings:
+
+- Framework preset: **Next.js**
+- Root directory: repository root
+- Install command: `npm install` (Vercel may use `npm ci` automatically with the lockfile)
+- Build command: `npm run build`
+- Output directory: leave unset; Next.js manages `.next`
+- Node.js: 22.x, matching `package.json`
+
+Add these Vercel Production environment variables using the production Supabase project values:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=https://YOUR_PRODUCTION_DOMAIN
+```
+
+Do not add a service-role key to Vercel for this application. Redeploy after changing environment variables.
+
+In Supabase **Authentication → URL Configuration**, set:
+
+- Site URL: `https://YOUR_PRODUCTION_DOMAIN`
+- Redirect URL: `https://YOUR_PRODUCTION_DOMAIN/auth/confirm`
+- Development redirect: `http://localhost:3000/auth/confirm`
+
+Keep email confirmation enabled and configure the confirmation template and production SMTP as described in [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md). Avoid wildcard production redirects. Deployments must use HTTPS for PWA installation and secure auth cookies.
+
+Before release, run the repeatable [QA checklist](docs/QA.md), including its two-account privacy test and post-deployment smoke test.
+
 ## Architecture
 
 ```text
@@ -77,6 +117,7 @@ docs/DATABASE.md          Schema, RLS, derived-data, and migration decisions
 docs/AUTHENTICATION.md    Auth flow, dashboard settings, and test checklist
 docs/DESIGN.md            Visual and interaction conventions
 docs/PWA.md               Install, caching, offline, update, and privacy behavior
+docs/QA.md                Repeatable release, privacy, mobile, and deployment checks
 docs/ROADMAP.md           Product implementation sequence
 ```
 

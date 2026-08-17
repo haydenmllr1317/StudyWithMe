@@ -4,7 +4,7 @@ StudyWithMe uses the Next.js App Router manifest plus a small custom service wor
 
 ## Cache and privacy
 
-`public/sw.js` precaches only the self-contained `/offline.html` fallback and app icons. Same-origin scripts, styles, fonts, and images use cache-first storage because Next.js production chunks are content-hashed. Navigations always use the network and fall back to that dependency-free page; authenticated HTML, React server responses, Supabase APIs, session data, profiles, leaderboards, and group data are never deliberately cached. Mutating requests are never intercepted or queued.
+`public/sw.js` precaches only the self-contained `/offline.html` fallback and app icons. Runtime caching is restricted to content-hashed files below `/_next/static/` plus those explicit precache assets. Navigations always use the network and fall back to the dependency-free offline page; authenticated HTML, React server responses, arbitrary same-origin images, Supabase APIs, session data, profiles, leaderboards, and group data are never cached. Mutating requests are never intercepted or queued.
 
 ## Offline behavior
 
