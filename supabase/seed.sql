@@ -1,0 +1,2 @@
+-- Intentionally empty. Create local test users through Supabase Studio so Auth
+-- owns their credentials and the profile trigger runs exactly as in production.

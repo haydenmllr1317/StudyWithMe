@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #fbf8f1;
+  --ink: #25312d;
+  --muted: #68736e;
+  --line: #ddd9cf;
+  --coral: #b84d3a;
+  --moss: #648571;
+  --sky: #769eae;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  min-height: 100dvh;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, input, select, textarea { font: inherit; }
+::selection { color: var(--paper); background: var(--coral); }
+* { scrollbar-color: var(--moss) var(--paper); scrollbar-width: thin; }
+:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+@layer components {
+  .measure-label { @apply text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-muted; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  .field { @apply min-h-12 w-full rounded-field border border-line bg-white px-4 text-sm text-ink outline-none transition-colors placeholder:text-muted/70 hover:border-muted focus:border-coral focus:ring-2 focus:ring-coral/10; }
+}

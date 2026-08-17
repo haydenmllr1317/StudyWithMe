@@ -1,0 +1,2 @@
+import type{MetadataRoute}from"next";
+export default function manifest():MetadataRoute.Manifest{return{name:"StudyWithMe",short_name:"StudyWithMe",description:"A calm place to focus, track study time, and make progress together.",start_url:"/today",scope:"/",display:"standalone",background_color:"#FBF8F1",theme_color:"#FBF8F1",icons:[{src:"/app-icon-192.png",sizes:"192x192",type:"image/png",purpose:"any"},{src:"/app-icon-512.png",sizes:"512x512",type:"image/png",purpose:"any"},{src:"/app-icon-maskable-512.png",sizes:"512x512",type:"image/png",purpose:"maskable"}]}}
