@@ -4,7 +4,7 @@ export const analyticsRanges = ["7d", "30d", "3m", "6m", "1y", "all"] as const;
 export type AnalyticsRange = (typeof analyticsRanges)[number];
 export type AnalyticsPoint = { date: string; seconds: number };
 export type AnalyticsGoal = { name: string; seconds: number };
-export type AnalyticsRanking = { displayName: string; username: string; durationSeconds: number; rank: number | null; isCurrentUser: boolean };
+export type AnalyticsRanking = { displayName: string; username: string; avatarPath: string | null; durationSeconds: number; rank: number | null; isCurrentUser: boolean };
 export type AnalyticsData = { range: AnalyticsRange; scope: "mine" | "everyone" | "circle"; timezone: string; totalSeconds: number; daily: AnalyticsPoint[]; goals: AnalyticsGoal[]; leaderboard: AnalyticsRanking[] };
 
 export function parseAnalyticsRange(value: string | string[] | undefined): AnalyticsRange {
@@ -31,7 +31,7 @@ export function parseAnalyticsData(value: Json | null): AnalyticsData | null {
   }) : [];
   const leaderboard = Array.isArray(raw.leaderboard) ? raw.leaderboard.flatMap((entry) => {
     if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.username !== "string") return [];
-    return [{ displayName: typeof entry.displayName === "string" ? entry.displayName : entry.username, username: entry.username, durationSeconds: nonnegative(entry.durationSeconds), rank: typeof entry.rank === "number" ? entry.rank : null, isCurrentUser: entry.isCurrentUser === true }];
+    return [{ displayName: typeof entry.displayName === "string" ? entry.displayName : entry.username, username: entry.username, avatarPath: typeof entry.avatarPath === "string" ? entry.avatarPath : null, durationSeconds: nonnegative(entry.durationSeconds), rank: typeof entry.rank === "number" ? entry.rank : null, isCurrentUser: entry.isCurrentUser === true }];
   }) : [];
   return { range: parseAnalyticsRange(typeof raw.range === "string" ? raw.range : undefined), scope, timezone: typeof raw.timezone === "string" ? raw.timezone : "UTC", totalSeconds: nonnegative(raw.totalSeconds), daily, goals, leaderboard };
 }

@@ -9,5 +9,5 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   await redirectIfAuthenticated();
   const candidate = (await searchParams).next;
   const next = typeof candidate === "string" ? safeInternalPath(candidate) : undefined;
-  return <AuthShell title="Begin with one focused hour." description="Create a quiet place for your study time and personal consistency."><SignupForm next={next} /></AuthShell>;
+  return <AuthShell><SignupForm next={next} /></AuthShell>;
 }

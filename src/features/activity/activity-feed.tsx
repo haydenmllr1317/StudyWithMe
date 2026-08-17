@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/ui/avatar";
 import type { ActivityFeed as ActivityFeedData, ActivityScope } from "@/lib/activity";
 import { formatDuration } from "@/lib/sessions/format";
 
@@ -41,7 +42,7 @@ export function ActivityFeed({ data, scope }: { data: ActivityFeedData; scope: A
     <ol className="border-t border-line">
       {data.items.map((item) => <li className="border-b border-line py-6 sm:py-7" key={item.id}>
         <article className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:gap-5">
-          <div aria-hidden="true" className={`grid size-11 place-items-center rounded-full text-sm font-semibold ${item.isCurrentUser ? "bg-coral-soft text-coral-dark" : "bg-sky-soft text-ink"}`}>{item.displayName.trim().charAt(0).toUpperCase() || "S"}</div>
+          <Avatar avatarPath={item.avatarPath} className={item.isCurrentUser ? "bg-coral-soft text-coral-dark" : ""} displayName={item.displayName} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><h2 className="font-semibold text-ink">{item.displayName}{item.isCurrentUser ? " · You" : ""}</h2><span className="text-xs text-muted">@{item.username}</span></div>
             <p className="mt-2 text-base text-ink">Studied <strong>{item.goalName}</strong></p>

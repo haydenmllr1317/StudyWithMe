@@ -93,6 +93,10 @@ components:
 
 ## Overview
 
+Authentication is intentionally reduced to a centered StudyWithMe wordmark, required fields, one primary action, and the reciprocal login/signup link. Do not restore marketing panels, feature copy, or decorative cards to these entry screens.
+
+Use the shared circular avatar primitive everywhere learner identity appears. Photos crop with `object-cover`; missing or invalid paths fall back to initials in the existing palette. Profile is the only editing surface, with Change and Remove actions kept beside the image.
+
 **Creative North Star: "In Concert"**
 
 StudyWithMe treats individual effort and trusted social context as parallel voices in one restrained composition. The interface feels focused, calm, polished, motivating, modern, and slightly playful: premium without becoming corporate, social without resembling social media, and competitive without aggression. Its identity is light and gender-neutral, built from warm ivory, precise ink, accessible coral, moss, and sky.

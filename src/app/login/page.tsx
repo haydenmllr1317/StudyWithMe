@@ -9,5 +9,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   await redirectIfAuthenticated();
   const candidate = (await searchParams).next;
   const next = typeof candidate === "string" ? safeInternalPath(candidate) : undefined;
-  return <AuthShell title="Find your place in the session." description="Return to today’s focus, your recent work, and the small circle studying alongside you."><LoginForm next={next} /></AuthShell>;
+  return <AuthShell><LoginForm next={next} /></AuthShell>;
 }

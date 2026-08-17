@@ -1,5 +1,6 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { GoalManager } from "@/features/goals/goal-manager";
+import { AvatarUpload } from "@/features/profile/avatar-upload";
 import { formatDuration } from "@/lib/sessions/format";
 import type { Json, Tables } from "@/types/database";
 
@@ -17,9 +18,6 @@ export function ProfileView({ email, goals, profile, stats }: {
   const hasStats = Boolean(stats && !Array.isArray(stats) && typeof stats === "object");
   const values = hasStats ? stats as Record<string, Json | undefined> : {};
   const displayName = profile?.display_name;
-  const initials = displayName
-    ? displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")
-    : "?";
   const joined = profile
     ? new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: profile.timezone }).format(new Date(profile.created_at))
     : null;
@@ -27,7 +25,7 @@ export function ProfileView({ email, goals, profile, stats }: {
   return <div className="space-y-12">
     <section className="grid gap-7 border-b border-line pb-10 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)]">
       <div className="flex items-center gap-5">
-        <div className="grid size-16 place-items-center rounded-full bg-moss-soft text-lg font-semibold text-moss-dark">{initials}</div>
+        <AvatarUpload avatarPath={profile?.avatar_url ?? null} displayName={displayName ?? "StudyWithMe learner"} />
         <div className="min-w-0">
           <h2 className="truncate text-2xl font-semibold tracking-[-0.03em] text-ink">{displayName ?? "Profile unavailable"}</h2>
           {profile ? <>

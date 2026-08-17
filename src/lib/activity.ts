@@ -5,6 +5,7 @@ export type ActivityScope = "mine" | "everyone" | `circle:${string}`;
 export type ActivityItem = {
   id: string;
   displayName: string;
+  avatarPath: string | null;
   username: string;
   goalName: string;
   durationSeconds: number;
@@ -51,6 +52,7 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
     return [{
       id: item.id,
       displayName: item.displayName,
+      avatarPath: typeof item.avatarPath === "string" ? item.avatarPath : null,
       username: item.username,
       goalName: item.goalName,
       durationSeconds,

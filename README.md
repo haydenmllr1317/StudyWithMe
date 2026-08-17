@@ -70,6 +70,8 @@ npx supabase gen types typescript --linked --schema public > src/types/database.
 
 The current release-readiness migration restricts full profile reads to the owning user. Apply it before inviting real users.
 
+Profile photos use the public-read `avatars` Storage bucket created by the avatar migration. Writes are authenticated and folder-scoped by Storage RLS; `profiles.avatar_url` stores only the relative object path. Apply pending migrations before testing photo uploads.
+
 ## Production deployment
 
 Import the repository into Vercel with these settings:
