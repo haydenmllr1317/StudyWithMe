@@ -19,7 +19,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   if(rangeDays) query=query.gte("started_at",localDayRangeStart(timezone,rangeDays));
   const [{ data: goals, error: goalsError }, { data: stats, error: statsError },{data:sessions,count,error}] = await Promise.all([
     supabase.from("study_goals").select("id,name,is_archived,daily_target_minutes,weekly_target_minutes").eq("user_id",userId),
-    supabase.rpc("get_study_analytics",{p_scope:"mine",p_group_id:null,p_range:range,p_limit:1}),
+    supabase.rpc("get_study_analytics",{p_scope:"mine",p_range:range,p_limit:1}),
     query,
   ]);
   const unavailable = Boolean(profileError || goalsError || statsError || error);

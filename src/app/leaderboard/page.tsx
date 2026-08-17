@@ -20,7 +20,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   if (typeof claims?.claims?.sub !== "string") redirect("/login");
   const [groupsResult, analyticsResult] = await Promise.all([
     supabase.rpc("get_my_study_groups"),
-    supabase.rpc("get_study_analytics", { p_scope: "everyone", p_group_id: null, p_range: range, p_limit: 50 }),
+    supabase.rpc("get_study_analytics", { p_scope: "everyone", p_range: range, p_limit: 50 }),
   ]);
   const circles = parseGroups(groupsResult.data);
   const analytics = parseAnalyticsData(analyticsResult.data);
