@@ -20,7 +20,7 @@ profiles
 
 - `profiles`: one social identity per Auth user. The primary key references `auth.users` with cascade deletion. Usernames use `citext` for case-insensitive uniqueness and a normalized format. `timezone` stores an IANA name for local calendar boundaries.
 - `study_goals`: private, user-owned study categories with optional descriptions and daily/weekly targets. Archiving preserves session history.
-- `study_sessions`: source-of-truth time intervals. A session is either active (`ended_at` and `duration_seconds` are null) or completed with a non-negative, internally consistent duration. The composite goal foreign key prevents assigning another user’s goal. A partial unique index permits only one active session per user.
+- `study_sessions`: source-of-truth time intervals. A session is either active (`ended_at` and `duration_seconds` are null) or completed with a non-negative, internally consistent duration. The composite goal foreign key prevents assigning another user’s goal. A partial unique index permits only one active session per user. `share_notes` defaults to false and controls only whether the current notes value appears in Activity.
 - `groups`: owner-controlled private study circles with unique 192-bit invite tokens. Tokens are visible only to owners through an authorized group-detail RPC.
 - `group_members`: unique group/user memberships with only `owner` and `member` roles. Creating a group automatically creates its protected owner membership.
 
@@ -39,7 +39,7 @@ Private `security definer` membership helpers live in the unexposed `private` sc
 
 ## Source and derived data
 
-Source data includes profiles, goals and targets, session timestamps/duration/notes/rating, groups, and membership. Daily/weekly/monthly/all-time totals, streaks, progress percentages, and leaderboard positions are derived from completed `study_sessions`; they are not stored redundantly.
+Source data includes profiles, goals and targets, session timestamps/duration/notes/rating/note-sharing choice, groups, and membership. Daily/weekly/monthly/all-time totals, streaks, progress percentages, leaderboard positions, and Activity entries are derived from completed `study_sessions`; they are not stored redundantly.
 
 The application-wide leaderboard uses `get_application_leaderboard(period, limit)`, a reviewed `security definer` function that aggregates inside PostgreSQL while raw session RLS remains owner-only. It returns only display name, username, aggregate duration, rank, and current-user flags. It does not expose internal user IDs, and it cannot return sessions, timestamps, goals, notes, ratings, avatar URLs, profile timezone, or settings. `EXECUTE` is revoked from `PUBLIC` and `anon` and granted only to `authenticated`; the function requires `auth.uid()`, validates period and limit (including explicit nulls), uses an empty `search_path`, and schema-qualifies every relation.
 
@@ -53,12 +53,22 @@ Authenticated clients have `SELECT` access to their session rows, while direct `
 
 - `start_study_session` verifies the authenticated user, locks and verifies an owned active goal, uses `clock_timestamp()` for `started_at`, and relies on the partial unique index as the final one-active-session guard.
 - `finish_study_session` locks the owned row, is idempotent when another client already finished it, and calculates `ended_at` and `duration_seconds` together from database timestamps.
-- `update_study_session_reflection` updates only notes and rating on an owned completed session.
+- `update_study_session_reflection` updates notes, rating, and the default-private Activity note-sharing choice on an owned completed session.
 - `pause_study_session` and `resume_study_session` persist pause boundaries and accumulated paused seconds. Final duration subtracts all paused time, including a session finished while paused.
 
 Pomodoro sessions persist `pomodoro_minutes` as either 25 or 50. Active rows may carry `paused_at`; completed rows always clear it. These fields keep recovery timestamp-based across refreshes and device suspension.
 
 These functions are intentionally `security definer` Data API endpoints because direct table writes are revoked. They use an empty `search_path`, explicitly require `auth.uid()`, constrain every lookup by ownership, expose no ownership or timestamp parameters, and have `EXECUTE` revoked from `PUBLIC` and `anon`. Supabase Security Advisor reports authenticated-callable security-definer functions as review warnings; for these lifecycle endpoints that exposure is deliberate and their explicit checks are the security boundary.
+
+The four-argument reflection function updates `share_notes`; the legacy three-argument overload always resets sharing to private. Editing a shared reflection updates the same source note, so Activity never has a conflicting copy.
+
+## Activity feed
+
+`get_activity_feed(scope, group_id, before_ended_at, before_id, limit)` is the only cross-user session feed endpoint. It is authenticated-only, uses an empty `search_path`, validates every input, and returns a fixed JSON projection containing public identity, the associated goal name, positive completed duration, minute-rounded completion time, rating, current-user state, and notes only when `share_notes` is true. It never returns user IDs, raw timestamps, active or invalid sessions, unshared notes, session types, pause data, goal IDs, profile settings, emails, or arbitrary session columns.
+
+The `mine` scope is limited to the caller, `everyone` includes feed-safe completed sessions from authenticated StudyWithMe users, and `circle` verifies that the caller currently belongs to the requested Circle before returning feed-safe sessions from its current members. Manipulating a Circle ID therefore fails inside PostgreSQL rather than relying on route validation. Raw `study_sessions` SELECT policy remains owner-only.
+
+Activity uses stable `(ended_at, id)` cursor pagination and reads at most 50 rows per call; the application requests 20. Partial global and per-user cursor indexes cover completed positive-duration feed scans without indexing active or zero-duration rows.
 
 ## Timezones
 
@@ -70,13 +80,21 @@ Application leaderboard periods use the viewing user's IANA timezone: Today begi
 
 ## Constraints and indexes
 
-Checks limit names, notes, target minutes, and ratings. Completed-session timing must agree to the second. Indexes cover user history, goal history, completed interval aggregation, group ownership, and membership lookup. The existing partial completed-session interval index supports leaderboard time filtering and grouping without a second redundant score or leaderboard index.
+Checks limit names, notes, target minutes, and ratings. Completed-session timing must agree to the second. Indexes cover user history, goal history, completed interval aggregation, Activity cursors, group ownership, and membership lookup. The existing partial completed-session interval index supports leaderboard time filtering and grouping without a second redundant score or leaderboard index.
 
 Session lifecycle functions use database-owned start/end timestamps and derive duration server-side, preventing direct fabricated durations or client-supplied timestamps. The MVP does not yet detect a user intentionally leaving a legitimate session running for an implausibly long time; stronger duration caps or review signals are deferred until product rules are established.
 
 Leaderboard pages are dynamically rendered and call the aggregation function on navigation or reload. There is no realtime subscription or persistent application cache, so a newly finished session appears on the next Leaderboard navigation or reload.
 
 History statistics use one materialized scan of the caller's completed sessions. The current-streak calculation orders only qualifying dates and compares them with consecutive expected dates; it does not generate or rescan decades of possible days. The History route reads the profile timezone first, then runs goals, statistics, and the bounded session page concurrently. Session ranges begin at midnight in that IANA timezone rather than at an approximate rolling UTC-hour boundary, keeping the list aligned with database calendar statistics.
+
+## Analytics aggregates
+
+`get_study_analytics(scope, group_id, range, limit)` supplies the shared History and Leaderboard analytics model. It accepts `7d`, `30d`, `3m`, `6m`, `1y`, and `all`, resolves calendar boundaries in the authenticated viewer's IANA timezone, and returns only daily totals, goal-label totals, ranking totals, and the selected context. Zero-study dates are generated in Postgres; raw sessions and exact timestamps never leave the database for chart rendering.
+
+The `mine` scope is restricted to `auth.uid()`. The `circle` scope requires current membership before any aggregation runs. `everyone` and `circle` goal labels are released only when at least two distinct learners contributed to the same label; smaller buckets are combined into `Other study`. This prevents the analytics endpoint from becoming a way to enumerate a person's private goals. The function is `SECURITY DEFINER` only because social aggregates must cross owner-only session RLS; it uses an empty search path, schema-qualified relations, explicit authentication and membership checks, and execute privileges limited to `authenticated`.
+
+Session contribution is clipped to the selected interval and distributed across local calendar days in proportion to the persisted focused duration, so paused wall-clock time is not added back into totals. The existing completed-session indexes support the bounded interval scan; no client-side raw-session aggregation or N+1 goal lookup is used.
 
 ## Private groups and invitations
 

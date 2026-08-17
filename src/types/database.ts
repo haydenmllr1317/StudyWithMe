@@ -168,6 +168,7 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
+          share_notes: boolean
           session_type: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at: string
@@ -184,6 +185,7 @@ export type Database = {
           paused_seconds?: number
           pomodoro_minutes?: number | null
           rating?: number | null
+          share_notes?: boolean
           session_type?: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at?: string
@@ -200,6 +202,7 @@ export type Database = {
           paused_seconds?: number
           pomodoro_minutes?: number | null
           rating?: number | null
+          share_notes?: boolean
           session_type?: Database["public"]["Enums"]["session_type"]
           started_at?: string
           updated_at?: string
@@ -247,6 +250,7 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
+          share_notes: boolean
           session_type: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at: string
@@ -259,12 +263,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_activity_feed: {
+        Args: {
+          p_before_ended_at?: string
+          p_before_id?: string
+          p_group_id?: string
+          p_limit?: number
+          p_scope?: string
+        }
+        Returns: Json
+      }
       get_application_leaderboard: {
         Args: { p_limit?: number; p_period?: string }
         Returns: Json
       }
       get_my_study_groups: { Args: never; Returns: Json }
       get_personal_history_stats: { Args: { p_days?: number }; Returns: Json }
+      get_study_analytics: {
+        Args: { p_group_id?: string | null; p_limit?: number; p_range?: string; p_scope?: string }
+        Returns: Json
+      }
       get_study_group: {
         Args: { p_group_id: string; p_limit?: number; p_period?: string }
         Returns: Json
@@ -292,6 +310,7 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
+          share_notes: boolean
           session_type: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at: string
@@ -327,6 +346,7 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
+          share_notes: boolean
           session_type: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at: string
@@ -356,6 +376,7 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
+          share_notes: boolean
           session_type: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at: string
@@ -369,7 +390,12 @@ export type Database = {
         }
       }
       update_study_session_reflection: {
-        Args: { p_notes: string; p_rating: number; p_session_id: string }
+        Args: {
+          p_notes: string
+          p_rating: number
+          p_session_id: string
+          p_share_notes: boolean
+        }
         Returns: {
           created_at: string
           duration_seconds: number | null
@@ -381,6 +407,7 @@ export type Database = {
           paused_seconds: number
           pomodoro_minutes: number | null
           rating: number | null
+          share_notes: boolean
           session_type: Database["public"]["Enums"]["session_type"]
           started_at: string
           updated_at: string

@@ -53,15 +53,16 @@ export function LoginForm({ next }: { next?: string }) {
       <Field autoComplete="current-password" error={state.fieldErrors?.password} label="Password" name="password" type="password" />
       <SubmitButton label="Log in" pendingLabel="Logging in…" />
     </form>
-    <p className="mt-6 border-t border-line pt-5 text-sm text-muted">New here? <Link className="font-semibold text-coral underline decoration-coral/30 underline-offset-4 hover:decoration-coral" href="/signup">Create an account</Link></p>
+    <p className="mt-6 border-t border-line pt-5 text-sm text-muted">New here? <Link className="font-semibold text-coral underline decoration-coral/30 underline-offset-4 hover:decoration-coral" href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>Create an account</Link></p>
   </div>;
 }
 
-export function SignupForm() {
+export function SignupForm({ next }: { next?: string }) {
   const [state, action] = useActionState(signupAction, initialAuthState);
   return <div>
-    <div><h2 className="text-xl font-semibold tracking-[-0.025em] text-ink">Create your account</h2><p className="mt-2 text-sm text-muted">Just enough information to begin. Goals and preferences come later.</p></div>
+    <div><h2 className="text-xl font-semibold tracking-[-0.025em] text-ink">Create your account</h2></div>
     <form action={action} className="mt-7 space-y-5" noValidate>
+      {next && <input name="next" type="hidden" value={next} />}
       <FormMessage message={state.message} />
       <Field autoComplete="name" error={state.fieldErrors?.displayName} label="Display name" maxLength={80} name="displayName" />
       <Field autoComplete="username" error={state.fieldErrors?.username} label="Username" maxLength={30} minLength={3} name="username" pattern="[a-z0-9][a-z0-9_]{2,29}" />
@@ -70,6 +71,6 @@ export function SignupForm() {
       <p className="text-xs leading-5 text-muted">Use at least 8 characters. Your username uses lowercase letters, numbers, and underscores.</p>
       <SubmitButton label="Create account" pendingLabel="Creating account…" />
     </form>
-    <p className="mt-6 border-t border-line pt-5 text-sm text-muted">Already have an account? <Link className="font-semibold text-coral underline decoration-coral/30 underline-offset-4 hover:decoration-coral" href="/login">Log in</Link></p>
+    <p className="mt-6 border-t border-line pt-5 text-sm text-muted">Already have an account? <Link className="font-semibold text-coral underline decoration-coral/30 underline-offset-4 hover:decoration-coral" href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Log in</Link></p>
   </div>;
 }

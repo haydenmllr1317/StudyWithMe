@@ -21,6 +21,7 @@ function refreshSessionPages() {
   revalidatePath("/");
   revalidatePath("/today");
   revalidatePath("/history");
+  revalidatePath("/activity");
 }
 
 export async function startSessionAction(_state: SessionActionState, formData: FormData): Promise<SessionActionState> {
@@ -77,12 +78,13 @@ export async function saveReflectionAction(_state: SessionActionState, formData:
   const notes = String(formData.get("notes") ?? "").trim();
   const rawRating = String(formData.get("rating") ?? "");
   const rating = rawRating ? Number(rawRating) : null;
+  const shareNotes = formData.get("shareNotes") === "on";
   if (!/^[0-9a-f-]{36}$/i.test(sessionId) || notes.length > 5000 || (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5))) {
     return { status: "error", message: "Check your notes and rating, then try again." };
   }
   const { supabase, authenticated } = await authenticatedClient();
   if (!authenticated) return { status: "error", message: "Your session expired. Sign in again and retry." };
-  const { data, error } = await supabase.rpc("update_study_session_reflection", { p_notes: notes, p_rating: rating as number, p_session_id: sessionId });
+  const { data, error } = await supabase.rpc("update_study_session_reflection", { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_share_notes: shareNotes });
   if (error || !data) return { status: "error", message: "Your session is saved, but the reflection could not be updated. Try again." };
   refreshSessionPages();
   return { status: "success", message: "Reflection saved.", session: data };

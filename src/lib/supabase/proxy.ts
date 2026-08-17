@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
+import { loginPathFor } from "@/lib/auth/redirect";
 
 export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,6 +43,8 @@ export async function updateSession(request: NextRequest) {
   };
 
   if (isAuthPage && authenticated) return redirectWithRefreshedCookies("/today");
-  if (!isPublicAuthRoute && !authenticated) return redirectWithRefreshedCookies("/login");
+  if (!isPublicAuthRoute && !authenticated) {
+    return redirectWithRefreshedCookies(loginPathFor(pathname, request.nextUrl.search));
+  }
   return response;
 }

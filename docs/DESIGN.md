@@ -99,7 +99,7 @@ StudyWithMe treats individual effort and trusted social context as parallel voic
 
 The visual grammar borrows from a musical score rather than a dashboard. Fine horizontal and vertical measure lines organize time, pace, history, and people into a readable rhythm. Broad open fields and expressive time figures establish hierarchy; flat rows and restrained containers keep evidence of progress honest and legible. Coral marks the clearest next action, while moss and sky support personal pace and quiet company.
 
-Private groups extend that same composition without becoming a separate social product. They sit beneath the shared Leaderboard as intentional, trusted circles: private pace comes first, membership and owner controls follow, and privacy boundaries are stated in plain language wherever an invitation or aggregate comparison could create uncertainty.
+Circles extend that same composition without becoming a separate social product. Private pace comes first, membership and owner controls follow, and privacy boundaries are stated in plain language wherever an invitation, aggregate comparison, or Activity projection could create uncertainty.
 
 Interaction is direct and composed. State changes use short color, transform, and disclosure transitions (200ms with an ease-out curve); small translations or rotations clarify response without becoming spectacle. Honor `prefers-reduced-motion` by removing smooth scrolling and reducing transitions and animations to effectively instantaneous changes.
 
@@ -110,7 +110,7 @@ Interaction is direct and composed. State changes use short color, transform, an
 - One dominant coral action, supported by quieter moss and sky signals.
 - Expressive tabular time typography paired with compact, disciplined labels.
 - Restrained radii, flat surfaces, and generous breathing room.
-- Mobile bottom navigation that becomes a calm top navigation on desktop.
+- Five-item mobile bottom navigation that becomes a calm top navigation on desktop.
 
 ## Colors
 
@@ -170,9 +170,9 @@ The application uses a mobile-first single-column flow within a centered maximum
 
 Fine one-pixel measure lines establish grouping. Sections frequently begin or end with a rule, while rows repeat at a steady vertical rhythm. Desktop compositions use intentionally unequal columns: the main task or evidence receives roughly 1.4–1.45 shares to the supporting voice’s 0.55–0.6. Secondary content may be separated by a vertical measure line, but it never competes at equal weight with the primary action.
 
-At iPhone widths, dense comparisons recompose into legible three-column rows, secondary details move onto their own line, and desktop vertical rules become horizontal divisions. At the medium breakpoint, navigation changes from a fixed four-item bottom bar with safe-area padding to a sticky desktop header. Do not create horizontal carousels or merely shrink desktop tables.
+At iPhone widths, dense comparisons recompose into legible three-column rows, secondary details move onto their own line, and desktop vertical rules become horizontal divisions. At the medium breakpoint, navigation changes from a fixed five-item bottom bar with safe-area padding to a sticky desktop header. Do not create horizontal carousels or merely shrink desktop tables.
 
-Groups remain subordinate within Leaderboard rather than becoming a fifth primary destination. The Leaderboard route places the private-group index after the main comparison; a group detail route leads with its private pace, then separates members from membership or owner controls in an intentionally unequal desktop split. Invitation acceptance is a narrow, centered flow that presents the group and its privacy terms before the join action.
+Circle is a primary destination alongside Activity. Its selector routes among Circles the learner actually belongs to; when none exist, it becomes a restrained self-only pace view with creation nearby. A Circle detail leads with private pace, then separates members from membership or owner controls in an intentionally unequal desktop split. Invitation acceptance is a narrow, centered flow that presents the Circle and its privacy terms before the join action.
 
 **The Measure, Then Space Rule.** Use lines to articulate meaningful boundaries and whitespace to establish hierarchy; do not wrap every group in a container.
 
@@ -220,13 +220,15 @@ Components feel restrained and precise at rest, then respond clearly through col
 ### Navigation
 
 - **Desktop:** A sticky 4rem header on Warm Paper with slight translucency and backdrop blur. The plain StudyWithMe wordmark anchors the left; active links use Study Ink plus one coral point, while inactive links remain quiet.
-- **Mobile:** A fixed four-column, text-only bottom navigation with at least 4rem-high destinations and safe-area padding. The active destination is semibold and marked by one small coral point; avoid generic tab-bar icon sets.
+- **Mobile:** A fixed five-column, text-only bottom navigation with at least 4rem-high destinations and safe-area padding. The active destination is semibold and marked by one small coral point; avoid generic tab-bar icon sets.
 - **Identity:** Use the single-word StudyWithMe wordmark with a coral full stop. Do not pair it with a generic abstract app mark.
 
 ### Tabs, Rows, and Progress Measures
 
 - **Tabs:** Text tabs share a bottom rule. Selection is shown by ink text and a short coral underline, with full ARIA tab semantics.
 - **Rows:** History, rankings, goals, and social presence are expressed as flat bordered rows. Use compact status dots and aligned tabular values; provide text for every meaningful status or relative pace.
+- **Analytics:** History and Leaderboard share one six-option timeframe rail. Rankings and charts always use the same range. Goal totals use restrained horizontal coral, moss, and sky measures; daily totals use a thin moss SVG line with sparse date labels and an expandable textual value table. Charts remain open sections rather than nested dashboard cards.
+- **App icon:** The icon uses the ivory field with moss and coral sleeves framing two held hands. The central gesture carries togetherness at small sizes without faces, text, or study-tool clutter.
 - **Progress measures:** Render progress as thin score-like lines with small pill-ended fills. Keep charts quiet and legible; axes, labels, or adjacent values must make the information understandable without hue alone.
 
 ### Toggles and Disclosure
@@ -234,17 +236,25 @@ Components feel restrained and precise at rest, then respond clearly through col
 - **Toggles:** Use a Measure Line track when off and Measured Moss when on, with a Quiet Surface thumb. Preserve a comfortable labeled touch target and expose the pressed state semantically.
 - **Disclosure:** Expand setup content immediately beneath its trigger by transitioning the grid row over 200ms. The launcher arrow may translate on hover and rotate when open. Under reduced motion, these state changes occur without meaningful animation.
 
-### Private Groups
+### Circles
 
-- **Placement:** Present “Your private groups” as a bordered section below the primary Leaderboard. Use a flat score-line list with group name, role, learner count, and a restrained text action; do not promote groups into cards or primary navigation.
-- **Group detail:** Lead with the private leaderboard and period tabs before members and management. Highlight the current learner with the existing soft coral row treatment, preserve tabular ranks and duration, and show names, usernames, roles, and aggregate totals as clearly aligned text.
-- **Privacy framing:** Describe groups as small circles for people the learner knows. State that membership and rankings are private, invite links are owner-only, and personal sessions, goals, notes, ratings, and reflections remain private. Invitation screens repeat the relevant boundary before asking someone to join.
+- **Placement:** Present “Your Circles” as a flat score-line list with Circle name, role, learner count, and a restrained text action; do not promote Circles into cards.
+- **Circle detail:** Lead with the private leaderboard and period tabs before members and management. Highlight the current learner with the existing soft coral row treatment, preserve tabular ranks and duration, and show names, usernames, roles, and aggregate totals as clearly aligned text.
+- **Privacy framing:** Describe Circles as small spaces for people the learner knows. State that membership and rankings are private, invite links are owner-only, and raw sessions and goal lists remain private. Notes appear in Activity only after explicit sharing. Invitation screens repeat the relevant boundary before asking someone to join.
 - **Owner controls:** Keep invite, rename, member removal, and deletion in a quiet secondary column after group pace and membership. The invite value uses a read-only field with a text-style Copy action; regeneration remains a lower-emphasis link action.
 - **Destructive confirmation:** Reveal leave and delete confirmation inline where the action began. Name the consequence and what data remains untouched, then pair the destructive submit with a plain Cancel action. Do not use a modal for these compact, contextual decisions.
 - **Pending and error states:** Disable the active control and replace its label with a specific present-participle state such as “Creating…,” “Joining…,” or “Deleting…”. Render action failures as nearby alerts in dark coral; route-level failures use a flat bordered message and a clear route back.
 - **Copy feedback:** Announce successful copy through a polite live region without adding visible celebration. If copying fails, show a concise visible message that tells the learner to select and copy the read-only link manually.
 
-**The Private Pace First Rule.** A group page answers “How are we pacing?” before exposing membership management; administration never becomes the hero of the surface.
+**The Private Pace First Rule.** A Circle page answers “How are we pacing?” before exposing membership management; administration never becomes the hero of the surface.
+
+### Activity
+
+- **Structure:** Activity is a chronological score of completed sessions, rendered as open rows separated by measure lines rather than a stack of social cards.
+- **Hierarchy:** Identity leads, followed by subject and duration; time and rating remain compact metadata. A shared reflection is the final, quieter voice.
+- **Scope:** A native select switches among My Activity, Everyone, and the learner’s Circles. Circle options are membership-derived and never fabricated.
+- **Privacy:** Every completed valid session may contribute a feed-safe entry, but notes appear only after an explicit, default-off sharing choice. Activity never implies access to raw sessions or goal lists.
+- **Restraint:** No likes, comments, reactions, follower mechanics, messaging, engagement counters, or oversized feed cards.
 
 ## Do's and Don'ts
 
@@ -254,10 +264,10 @@ Components feel restrained and precise at rest, then respond clearly through col
 - **Do** use score-like lines, open rows, unequal columns, and whitespace to compose hierarchy.
 - **Do** keep coral rare and decisive; use moss and sky as quieter parallel voices.
 - **Do** use tabular numerals and text labels for progress, time, ranking, and pace.
-- **Do** recompose dense content for iPhone and preserve the labeled four-item bottom navigation.
+- **Do** recompose dense content for iPhone and preserve the labeled five-item bottom navigation.
 - **Do** keep motion short, directional, and state-driven, and fully respect reduced-motion preferences.
 - **Do** preserve visible keyboard focus, sufficient contrast, semantic controls, and comfortable touch targets.
-- **Do** keep private groups nested under Leaderboard and lead group detail with aggregate pace before controls.
+- **Do** lead Circle detail with aggregate pace before controls.
 - **Do** place pending, error, empty, unavailable, and copy feedback next to the action or content it explains, with appropriate alert or live-region semantics.
 - **Do** confirm leave and delete actions inline and state both the consequence and the study data that remains intact.
 
@@ -271,6 +281,6 @@ Components feel restrained and precise at rest, then respond clearly through col
 - **Don't** rely on color alone to explain identity, progress, selection, or relative pace.
 - **Don't** animate for spectacle; avoid looping motion, celebratory bursts, and transitions that delay study actions.
 - **Don't** shrink desktop tables into cramped mobile layouts or replace them with carousels.
-- **Don't** turn groups into a primary destination, a public directory, a discovery feed, or a separate card dashboard.
-- **Don't** expose invite links as decorative share objects or imply that group membership grants access to private sessions, goals, notes, ratings, or reflections.
+- **Don't** turn Circles into a public directory, discovery feed, or separate card dashboard.
+- **Don't** expose invite links as decorative share objects or imply that Circle membership grants access to raw sessions, goal lists, or private notes.
 - **Don't** hide destructive consequences in vague labels, trigger destructive actions immediately, or rely on a toast as the only confirmation or error feedback.

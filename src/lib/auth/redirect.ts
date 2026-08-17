@@ -10,3 +10,8 @@ export function safeInternalPath(value: unknown, fallback = "/today") {
     return fallback;
   }
 }
+
+export function loginPathFor(pathname: string, search = "") {
+  const destination = safeInternalPath(`${pathname}${search}`, "/today");
+  return `/login?next=${encodeURIComponent(destination)}`;
+}

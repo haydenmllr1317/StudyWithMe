@@ -1,0 +1,37 @@
+import type { Json } from "@/types/database";
+
+export const analyticsRanges = ["7d", "30d", "3m", "6m", "1y", "all"] as const;
+export type AnalyticsRange = (typeof analyticsRanges)[number];
+export type AnalyticsPoint = { date: string; seconds: number };
+export type AnalyticsGoal = { name: string; seconds: number };
+export type AnalyticsRanking = { displayName: string; username: string; durationSeconds: number; rank: number | null; isCurrentUser: boolean };
+export type AnalyticsData = { range: AnalyticsRange; scope: "mine" | "everyone" | "circle"; timezone: string; totalSeconds: number; daily: AnalyticsPoint[]; goals: AnalyticsGoal[]; leaderboard: AnalyticsRanking[] };
+
+export function parseAnalyticsRange(value: string | string[] | undefined): AnalyticsRange {
+  return typeof value === "string" && analyticsRanges.includes(value as AnalyticsRange) ? value as AnalyticsRange : "30d";
+}
+
+export function analyticsRangeLabel(range: AnalyticsRange) {
+  return { "7d": "7 days", "30d": "30 days", "3m": "3 months", "6m": "6 months", "1y": "1 year", all: "All time" }[range];
+}
+
+const nonnegative = (value: unknown) => Math.max(0, Number(value) || 0);
+
+export function parseAnalyticsData(value: Json | null): AnalyticsData | null {
+  if (!value || Array.isArray(value) || typeof value !== "object") return null;
+  const raw = value as Record<string, Json | undefined>;
+  const scope = raw.scope === "everyone" || raw.scope === "circle" ? raw.scope : "mine";
+  const daily = Array.isArray(raw.daily) ? raw.daily.flatMap((entry) => {
+    if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.date !== "string") return [];
+    return [{ date: entry.date, seconds: nonnegative(entry.seconds) }];
+  }) : [];
+  const goals = Array.isArray(raw.goals) ? raw.goals.flatMap((entry) => {
+    if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.name !== "string") return [];
+    return [{ name: entry.name, seconds: nonnegative(entry.seconds) }];
+  }) : [];
+  const leaderboard = Array.isArray(raw.leaderboard) ? raw.leaderboard.flatMap((entry) => {
+    if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.username !== "string") return [];
+    return [{ displayName: typeof entry.displayName === "string" ? entry.displayName : entry.username, username: entry.username, durationSeconds: nonnegative(entry.durationSeconds), rank: typeof entry.rank === "number" ? entry.rank : null, isCurrentUser: entry.isCurrentUser === true }];
+  }) : [];
+  return { range: parseAnalyticsRange(typeof raw.range === "string" ? raw.range : undefined), scope, timezone: typeof raw.timezone === "string" ? raw.timezone : "UTC", totalSeconds: nonnegative(raw.totalSeconds), daily, goals, leaderboard };
+}

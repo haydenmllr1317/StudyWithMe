@@ -8,7 +8,7 @@ StudyWithMe uses Supabase Auth with email/password credentials, cookie-backed SS
 2. The app checks username availability through a narrowly scoped database function.
 3. `auth.signUp()` stores `username` and `display_name` in signup metadata.
 4. The existing `auth.users` trigger creates the single corresponding `profiles` row. No application code inserts a competing profile.
-5. When confirmation is enabled, signup shows `/signup/check-email`. The confirmation handler verifies the token and stores the resulting session in cookies.
+5. When confirmation is enabled, signup shows `/signup/check-email`. The confirmation handler verifies the token, stores the resulting session in cookies, and returns the learner to a validated internal destination such as a pending Circle invite.
 6. The request proxy validates the JWT with `getClaims()`, refreshes cookies when needed, and protects application routes.
 7. Profile rendering validates the claims again, then reads the caller’s profile through normal authenticated access and RLS.
 
@@ -20,13 +20,13 @@ In **Authentication → URL Configuration**:
 - Additional redirect URL: `http://localhost:3000/auth/confirm`
 - Add the production equivalents before deployment, for example `https://your-domain.example` and `https://your-domain.example/auth/confirm`.
 
-Keep **Confirm email** enabled unless the product deliberately chooses lower signup friction over verified ownership. For the token-hash SSR flow, update the **Confirm signup** email template link to:
+Keep **Confirm email** enabled unless the product deliberately chooses lower signup friction over verified ownership. For the token-hash SSR flow, update the **Confirm signup** email template link to use the redirect passed by the application:
 
 ```text
-{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email
 ```
 
-The confirmation handler also accepts the standard PKCE `code` callback for compatibility. Do not add wildcard production redirect URLs.
+Using `.RedirectTo` preserves the validated `/join/<token>` destination encoded in the callback URL. The confirmation handler also accepts the standard PKCE `code` callback for compatibility. Do not add wildcard production redirect URLs.
 
 ## Local verification
 

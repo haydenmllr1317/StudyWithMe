@@ -1,4 +1,13 @@
-import Link from"next/link";
-import{CreateGroupForm}from"@/features/groups/group-forms";
-import type{GroupSummary}from"@/lib/groups";
-export function GroupsPanel({groups,error=false}:{groups:GroupSummary[];error?:boolean}){return<section className="border-t border-line pt-8"><div className="grid gap-8 lg:grid-cols-[1.4fr_0.6fr]"><div><h2 className="text-xl font-semibold tracking-[-0.025em] text-ink">Your private groups</h2><p className="mt-2 max-w-lg text-sm leading-6 text-muted">Small circles for studying alongside people you know. Membership and rankings stay private.</p>{error?<p className="mt-5 border-y border-line py-5 text-sm text-muted" role="alert">Your groups could not be loaded. Refresh to try again.</p>:groups.length?<ul className="mt-5 border-t border-line">{groups.map(g=><li className="border-b border-line" key={g.id}><Link className="grid min-h-16 grid-cols-[1fr_auto] items-center gap-4 py-3" href={`/groups/${g.id}`}><span><strong className="block text-sm text-ink">{g.name}</strong><span className="mt-1 block text-xs text-muted">{g.role==="owner"?"Owner":"Member"} · {g.memberCount} {g.memberCount===1?"learner":"learners"}</span></span><span className="text-sm font-semibold text-coral">Open</span></Link></li>)}</ul>:<p className="mt-5 border-y border-line py-5 text-sm text-muted">You have not joined a private group yet.</p>}</div><div className="lg:border-l lg:border-line lg:pl-8"><h2 className="text-lg font-semibold text-ink">Start a group</h2><p className="mt-2 text-sm leading-6 text-muted">Create a quiet space, then share its private invite link.</p><div className="mt-5"><CreateGroupForm/></div></div></div></section>}
+import Link from "next/link";
+import { CreateGroupForm } from "@/features/groups/group-forms";
+import type { GroupSummary } from "@/lib/groups";
+
+export function GroupsPanel({ groups, error = false }: { groups: GroupSummary[]; error?: boolean }) {
+  return <section className="border-t border-line pt-8"><div className="grid gap-8 lg:grid-cols-[1.4fr_0.6fr]">
+    <div>
+      <h2 className="text-xl font-semibold tracking-[-0.025em] text-ink">Your Circles</h2>
+      {error ? <p className="mt-5 border-y border-line py-5 text-sm text-muted" role="alert">Your Circles could not be loaded. Refresh to try again.</p> : groups.length ? <ul className="mt-5 border-t border-line">{groups.map((circle) => <li className="border-b border-line" key={circle.id}><Link className="grid min-h-16 grid-cols-[1fr_auto] items-center gap-4 py-3" href={`/groups/${circle.id}`}><span><strong className="block text-sm text-ink">{circle.name}</strong><span className="mt-1 block text-xs text-muted">{circle.role === "owner" ? "Owner" : "Member"} · {circle.memberCount} {circle.memberCount === 1 ? "learner" : "learners"}</span></span><span className="text-sm font-semibold text-coral">Open</span></Link></li>)}</ul> : <p className="mt-5 border-y border-line py-5 text-sm text-muted">You have not joined a Circle yet.</p>}
+    </div>
+    <div className="lg:border-l lg:border-line lg:pl-8"><h2 className="text-lg font-semibold text-ink">Create a Circle</h2><div className="mt-5"><CreateGroupForm /></div></div>
+  </div></section>;
+}

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { safeInternalPath } from "@/lib/auth/redirect";
+import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import {
   authErrorMessage,
@@ -14,13 +15,6 @@ import {
   validateLogin,
   validateSignup,
 } from "@/lib/auth/validation";
-
-function getSiteUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
 
 export async function loginAction(
   _previousState: AuthActionState,
@@ -50,6 +44,7 @@ export async function signupAction(
   const password = readPassword(formData.get("password"));
   const username = normalizeUsername(formData.get("username"));
   const displayName = readText(formData.get("displayName"));
+  const next = safeInternalPath(formData.get("next"));
   const supabase = await createClient();
 
   const { data: available, error: availabilityError } = await supabase.rpc(
@@ -66,7 +61,7 @@ export async function signupAction(
     email,
     password,
     options: {
-      emailRedirectTo: `${getSiteUrl()}/auth/confirm`,
+      emailRedirectTo: `${getSiteUrl()}/auth/confirm?next=${encodeURIComponent(next)}`,
       data: { display_name: displayName, username },
     },
   });
@@ -78,8 +73,8 @@ export async function signupAction(
     return { message: authErrorMessage(error.code) };
   }
 
-  if (!data.session) redirect("/signup/check-email");
-  redirect("/today");
+  if (!data.session) redirect(`/signup/check-email?next=${encodeURIComponent(next)}`);
+  redirect(next);
 }
 
 export async function logoutAction(

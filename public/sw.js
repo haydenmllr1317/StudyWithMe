@@ -1,4 +1,4 @@
-const STATIC_CACHE="studywithme-static-v2";
+const STATIC_CACHE="studywithme-static-v3";
 const OFFLINE_URL="/offline.html";
 const PRECACHE=[OFFLINE_URL,"/app-icon-192.png","/app-icon-512.png","/apple-touch-icon.png"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(STATIC_CACHE).then(cache=>cache.addAll(PRECACHE))));
