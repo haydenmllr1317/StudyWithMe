@@ -12,9 +12,8 @@ function LogoutSubmit() {
 
 export function LogoutButton() {
   const [state, action] = useActionState(logoutAction, initialAuthState);
-  return <form action={action} className="flex flex-col items-start gap-3">
+  return <form action={action} className="flex flex-col items-center gap-3">
     <LogoutSubmit />
     {state.message && <p className="text-xs leading-5 text-coral-dark" role="alert">{state.message}</p>}
   </form>;
 }
-

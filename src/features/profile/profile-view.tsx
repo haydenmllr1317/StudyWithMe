@@ -21,7 +21,7 @@ export function ProfileView({ email, goals, profile, stats }: {
     ? displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")
     : "?";
   const joined = profile
-    ? new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(profile.created_at))
+    ? new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: profile.timezone }).format(new Date(profile.created_at))
     : null;
 
   return <div className="space-y-12">
@@ -43,9 +43,6 @@ export function ProfileView({ email, goals, profile, stats }: {
       </dl>
     </section>
     <GoalManager goals={goals} />
-    <section className="flex flex-col gap-5 border-t border-line pt-6 sm:flex-row sm:items-start sm:justify-between">
-      <h2 className="text-lg font-semibold tracking-[-0.02em] text-ink">Account</h2>
-      <LogoutButton />
-    </section>
+    <div className="flex justify-center"><LogoutButton /></div>
   </div>;
 }

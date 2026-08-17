@@ -76,6 +76,8 @@ Activity uses stable `(ended_at, id)` cursor pagination and reads at most 50 row
 
 All timestamps are `timestamptz` and represent absolute instants. Aggregates derive local boundaries from `profiles.timezone`; weeks begin Monday. Sessions crossing midnight are clipped where daily totals require it.
 
+The authenticated app shell detects the browser's current IANA timezone and synchronizes it to the caller's own profile through the existing owner-only profile update policy. When the stored value changes, the page refreshes once so Today, History, Activity, analytics, and ranking boundaries immediately use that local calendar. The server validates the timezone before writing it; UTC remains only the safe fallback when a browser cannot supply a valid IANA name.
+
 Application leaderboard periods use the viewing user's IANA timezone: Today begins at that viewer's local midnight, Week begins Monday at local midnight, Month begins on the first local calendar day, and All Time has no lower boundary. Consistent with the Step 6 headline totals, a completed session is assigned wholly according to its `started_at` instant in the viewer's timezone; it is not split across period boundaries. Rankings use SQL `DENSE_RANK()`, so equal durations share a rank and the next distinct duration advances by one rank. Rows with equal totals have deterministic display order by normalized username and user ID.
 
 ## Constraints and indexes
