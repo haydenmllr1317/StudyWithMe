@@ -42,6 +42,22 @@ button, input, select, textarea { font: inherit; }
     min-inline-size: 0;
   }
 
+  @media (max-width: 639px) {
+    .manual-temporal-field {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .manual-temporal-field::-webkit-date-and-time-value,
+    .manual-temporal-field::-webkit-datetime-edit {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
   @media (min-width: 640px) {
     .manual-temporal-field {
       block-size: 3rem;
