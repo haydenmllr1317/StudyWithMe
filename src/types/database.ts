@@ -205,6 +205,7 @@ export type Database = {
           reflection_photo_path: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           share_notes: boolean
+          source?: string
           started_at: string
           updated_at: string
           user_id: string
@@ -224,6 +225,7 @@ export type Database = {
           reflection_photo_path?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           share_notes?: boolean
+          source?: string
           started_at: string
           updated_at?: string
           user_id: string
@@ -243,6 +245,7 @@ export type Database = {
           reflection_photo_path?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           share_notes?: boolean
+          source?: string
           started_at?: string
           updated_at?: string
           user_id?: string
@@ -313,6 +316,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_circle_member_analytics: {
+        Args: { p_group_id: string; p_limit?: number; p_range?: string }
+        Returns: Json
+      }
       get_my_study_groups: { Args: never; Returns: Json }
       get_personal_history_stats: { Args: { p_days?: number }; Returns: Json }
       get_session_likers: { Args: { p_session_id: string }; Returns: Json }
@@ -339,6 +346,18 @@ export type Database = {
       get_visible_reflection_photo: {
         Args: { p_session_id: string }
         Returns: string
+      }
+      create_manual_study_session: {
+        Args: {
+          p_activity_circle_id?: string
+          p_duration_minutes: number
+          p_goal_id?: string
+          p_local_date: string
+          p_local_time: string
+          p_notes?: string
+          p_rating?: number
+        }
+        Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
       }
       is_username_available: { Args: { candidate: string }; Returns: boolean }
       join_study_group: { Args: { p_token: string }; Returns: string }

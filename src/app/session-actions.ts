@@ -97,6 +97,35 @@ export async function saveReflectionAction(_state: SessionActionState, formData:
   return { status: "success", message: "Reflection saved.", session: data };
 }
 
+export async function createManualSessionAction(_state: SessionActionState, formData: FormData): Promise<SessionActionState> {
+  const localDate=String(formData.get("date")??"");
+  const localTime=String(formData.get("startTime")??"");
+  const durationMinutes=Number(formData.get("durationMinutes"));
+  const goalValue=String(formData.get("goalId")??"");
+  const circleValue=String(formData.get("activityCircleId")??"");
+  const ratingValue=String(formData.get("rating")??"");
+  const notes=String(formData.get("notes")??"").trim();
+  const datePattern=/^\d{4}-\d{2}-\d{2}$/; const timePattern=/^(?:[01]\d|2[0-3]):[0-5]\d$/; const uuid=/^[0-9a-f-]{36}$/i;
+  const rating=ratingValue?Number(ratingValue):null;
+  if(!datePattern.test(localDate)||!timePattern.test(localTime)||!Number.isInteger(durationMinutes)||durationMinutes<1||durationMinutes>1440||notes.length>5000||(rating!==null&&(!Number.isInteger(rating)||rating<1||rating>5))||(goalValue&&!uuid.test(goalValue))||(circleValue&&!uuid.test(circleValue))){
+    return {status:"error",message:"Check the date, start time, duration, and optional details."};
+  }
+  const {supabase,authenticated}=await authenticatedClient();
+  if(!authenticated)return {status:"error",message:"Your session expired. Sign in again and retry."};
+  const {data,error}=await supabase.rpc("create_manual_study_session",{
+    p_local_date:localDate,p_local_time:localTime,p_duration_minutes:durationMinutes,
+    ...(goalValue?{p_goal_id:goalValue}:{}),...(circleValue?{p_activity_circle_id:circleValue}:{}),
+    ...(rating!==null?{p_rating:rating}:{}),...(notes?{p_notes:notes}:{}),
+  });
+  if(error||!data){
+    console.error("Manual session creation failed",{code:error?.code});
+    const message=error?.code==="42501"?"That goal or Circle is no longer available to your account.":error?.message.includes("future")?"Past sessions must start and finish before now.":"The past session could not be saved. Check its details and try again.";
+    return {status:"error",message};
+  }
+  refreshSessionPages(); revalidatePath("/leaderboard");
+  return {status:"success",message:"Past session added.",session:data};
+}
+
 export async function deleteCompletedSessionAction(_state: SessionActionState, formData: FormData): Promise<SessionActionState> {
   const sessionId = String(formData.get("sessionId") ?? "");
   const { supabase, authenticated } = await authenticatedClient();

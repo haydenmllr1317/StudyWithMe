@@ -5,7 +5,8 @@ export type AnalyticsRange = (typeof analyticsRanges)[number];
 export type AnalyticsPoint = { date: string; seconds: number };
 export type AnalyticsGoal = { name: string; seconds: number };
 export type AnalyticsRanking = { displayName: string; username: string; avatarPath: string | null; durationSeconds: number; rank: number | null; isCurrentUser: boolean };
-export type AnalyticsData = { range: AnalyticsRange; scope: "mine" | "everyone" | "circle"; timezone: string; totalSeconds: number; daily: AnalyticsPoint[]; goals: AnalyticsGoal[]; leaderboard: AnalyticsRanking[] };
+export type AnalyticsMember = { userId: string; displayName: string; username: string; durationSeconds: number; isCurrentUser: boolean; daily: AnalyticsPoint[] };
+export type AnalyticsData = { range: AnalyticsRange; scope: "mine" | "everyone" | "circle"; timezone: string; totalSeconds: number; daily: AnalyticsPoint[]; goals: AnalyticsGoal[]; leaderboard: AnalyticsRanking[]; members: AnalyticsMember[] };
 
 export function parseAnalyticsRange(value: string | string[] | undefined): AnalyticsRange {
   return typeof value === "string" && analyticsRanges.includes(value as AnalyticsRange) ? value as AnalyticsRange : "30d";
@@ -33,5 +34,15 @@ export function parseAnalyticsData(value: Json | null): AnalyticsData | null {
     if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.username !== "string") return [];
     return [{ displayName: typeof entry.displayName === "string" ? entry.displayName : entry.username, username: entry.username, avatarPath: typeof entry.avatarPath === "string" ? entry.avatarPath : null, durationSeconds: nonnegative(entry.durationSeconds), rank: typeof entry.rank === "number" ? entry.rank : null, isCurrentUser: entry.isCurrentUser === true }];
   }) : [];
-  return { range: parseAnalyticsRange(typeof raw.range === "string" ? raw.range : undefined), scope, timezone: typeof raw.timezone === "string" ? raw.timezone : "UTC", totalSeconds: nonnegative(raw.totalSeconds), daily, goals, leaderboard };
+  const members = Array.isArray(raw.members) ? raw.members.flatMap((entry) => {
+    if (!entry || Array.isArray(entry) || typeof entry !== "object") return [];
+    const member = entry as Record<string, Json | undefined>;
+    if (typeof member.userId !== "string" || typeof member.username !== "string") return [];
+    const memberDaily = Array.isArray(member.daily) ? member.daily.flatMap((point) => {
+      if (!point || Array.isArray(point) || typeof point !== "object" || typeof point.date !== "string") return [];
+      return [{ date: point.date, seconds: nonnegative(point.seconds) }];
+    }) : [];
+    return [{ userId: member.userId, displayName: typeof member.displayName === "string" ? member.displayName : member.username, username: member.username, durationSeconds: nonnegative(member.durationSeconds), isCurrentUser: member.isCurrentUser === true, daily: memberDaily }];
+  }) : [];
+  return { range: parseAnalyticsRange(typeof raw.range === "string" ? raw.range : undefined), scope, timezone: typeof raw.timezone === "string" ? raw.timezone : "UTC", totalSeconds: nonnegative(raw.totalSeconds), daily, goals, leaderboard, members };
 }
