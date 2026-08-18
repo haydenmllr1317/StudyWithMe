@@ -40,8 +40,8 @@ export function ManualSessionForm({goals,circles,defaultDate,defaultTime}:{goals
     <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between text-sm font-semibold text-ink marker:content-none"><span>Log a past study session</span><span aria-hidden="true" className="text-lg font-normal text-muted">＋</span></summary>
     <form className="mt-5 min-w-0" onSubmit={submit} ref={formRef}>
       <div className="grid min-w-0 gap-5 sm:grid-cols-3">
-        <label className="min-w-0 text-sm font-semibold text-ink">Date<input className="field mt-2 block min-w-0 max-w-full" defaultValue={defaultDate} max={defaultDate} name="date" required type="date"/></label>
-        <label className="min-w-0 text-sm font-semibold text-ink">Start time<input className="field mt-2 block min-w-0 max-w-full" defaultValue={defaultTime} name="startTime" required type="time"/></label>
+        <label className="min-w-0 text-sm font-semibold text-ink">Date<input className="field manual-temporal-field mt-2" defaultValue={defaultDate} max={defaultDate} name="date" required type="date"/></label>
+        <label className="min-w-0 text-sm font-semibold text-ink">Start time<input className="field manual-temporal-field mt-2" defaultValue={defaultTime} name="startTime" required type="time"/></label>
         <label className="min-w-0 text-sm font-semibold text-ink">Duration (minutes)<input className="field mt-2 block min-w-0 max-w-full" inputMode="numeric" max={1440} min={1} name="durationMinutes" placeholder="60" required type="number"/></label>
       </div>
       <div className="mt-5 grid min-w-0 gap-5 sm:grid-cols-2">
