@@ -79,23 +79,17 @@ export async function saveReflectionAction(_state: SessionActionState, formData:
   const rawRating = String(formData.get("rating") ?? "");
   const rating = rawRating ? Number(rawRating) : null;
   const shareNotes = formData.get("shareNotes") === "on";
-  const audienceValue = formData.get("activityAudience");
-  const audience = typeof audienceValue === "string" && audienceValue ? audienceValue : null;
-  const groupIds = formData.getAll("audienceGroupIds").map(String);
+  const circleValue = formData.get("activityCircleId");
+  const circleId = typeof circleValue === "string" && circleValue ? circleValue : null;
   const reflectionPhotoPath = String(formData.get("reflectionPhotoPath") ?? "") || null;
   if (!/^[0-9a-f-]{36}$/i.test(sessionId) || notes.length > 5000 || (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5)) || (reflectionPhotoPath && !reflectionPhotoPath.includes(`/${sessionId}/reflection-`))) {
     return { status: "error", message: "Check your notes and rating, then try again." };
   }
   const { supabase, authenticated } = await authenticatedClient();
   if (!authenticated) return { status: "error", message: "Your session expired. Sign in again and retry." };
-  if (audience && !["only_me", "circles", "everyone"].includes(audience)) {
-    return { status: "error", message: "Choose who can see this activity." };
-  }
-  if (audience === "circles" && groupIds.length === 0) {
-    return { status: "error", message: "Choose at least one Circle." };
-  }
-  const reflectionArgs = audience
-    ? { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_share_notes: audience !== "only_me", p_reflection_photo_path: reflectionPhotoPath, p_activity_audience: audience, p_group_ids: groupIds }
+  if (circleId && !/^[0-9a-f-]{36}$/i.test(circleId)) return { status: "error", message: "Choose a valid Circle." };
+  const reflectionArgs = circleValue !== null
+    ? { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_reflection_photo_path: reflectionPhotoPath, ...(circleId ? { p_activity_circle_id: circleId } : {}) }
     : { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_share_notes: shareNotes, p_reflection_photo_path: reflectionPhotoPath };
   const { data, error } = await supabase.rpc("update_study_session_reflection", reflectionArgs);
   if (error || !data) return { status: "error", message: "Your session is saved, but the reflection could not be updated. Try again." };

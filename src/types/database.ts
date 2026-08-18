@@ -191,7 +191,7 @@ export type Database = {
       }
       study_sessions: {
         Row: {
-          activity_audience?: string
+          activity_circle_id?: string | null
           created_at: string
           duration_seconds: number | null
           ended_at: string | null
@@ -210,7 +210,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          activity_audience?: string
+          activity_circle_id?: string | null
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -229,7 +229,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          activity_audience?: string
+          activity_circle_id?: string | null
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -313,13 +313,8 @@ export type Database = {
         }
         Returns: Json
       }
-      get_application_leaderboard: {
-        Args: { p_limit?: number; p_period?: string }
-        Returns: Json
-      }
       get_my_study_groups: { Args: never; Returns: Json }
       get_personal_history_stats: { Args: { p_days?: number }; Returns: Json }
-      get_notifications: { Args: { p_limit?: number }; Returns: Json }
       get_session_likers: { Args: { p_session_id: string }; Returns: Json }
       get_study_analytics: {
         Args: {
@@ -347,7 +342,6 @@ export type Database = {
       }
       is_username_available: { Args: { candidate: string }; Returns: boolean }
       join_study_group: { Args: { p_token: string }; Returns: string }
-      mark_notifications_read: { Args: { p_notification_id?: string }; Returns: number }
       leave_study_group: { Args: { p_group_id: string }; Returns: undefined }
       pause_study_session: {
         Args: { p_session_id: string }
@@ -507,13 +501,11 @@ export type Database = {
           }
         | {
             Args: {
-              p_activity_audience: string
-              p_group_ids?: string[]
+              p_activity_circle_id?: string
               p_notes: string
               p_rating: number
               p_reflection_photo_path: string
               p_session_id: string
-              p_share_notes: boolean
             }
             Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
           }

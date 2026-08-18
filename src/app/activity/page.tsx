@@ -19,7 +19,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
   const groupsResult = await supabase.rpc("get_my_study_groups");
   const circles = parseGroups(groupsResult.data);
-  if (!activityScopeAllowed(scope, circles)) redirect("/activity?scope=everyone");
+  if (!activityScopeAllowed(scope, circles)) redirect("/activity?scope=all_circles");
 
   const circleId = scope.startsWith("circle:") ? scope.slice(7) : undefined;
   const feedResult = await supabase.rpc("get_activity_feed", {

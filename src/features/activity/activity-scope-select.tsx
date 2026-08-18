@@ -15,7 +15,7 @@ export function ActivityScopeSelect({ circles, value }: { circles: GroupSummary[
       value={value}
     >
       <option value="mine">My Activity</option>
-      <option value="everyone">Everyone</option>
+      <option value="all_circles">All Circles</option>
       {circles.map((circle) => <option key={circle.id} value={`circle:${circle.id}`}>{circle.name}</option>)}
     </select>
   </label>;

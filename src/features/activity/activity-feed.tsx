@@ -11,10 +11,10 @@ function emptyState(scope: ActivityScope) {
     copy: "Your finished study sessions will collect here.",
     action: <Link className="mt-4 inline-block text-sm font-semibold text-coral underline underline-offset-4" href="/today">Start from Today</Link>,
   };
-  if (scope === "everyone") return {
-    title: "No activity yet.",
-    copy: "Completed study sessions will appear here as learners make progress.",
-    action: null,
+  if (scope === "all_circles") return {
+    title: "No Circle activity yet.",
+    copy: "Join a Circle with an invitation to see shared study progress here.",
+    action: <Link className="mt-4 inline-block text-sm font-semibold text-coral underline underline-offset-4" href="/leaderboard">View your Circles</Link>,
   };
   return {
     title: "This Circle is quiet for now.",
@@ -49,7 +49,7 @@ export function ActivityFeed({ data, scope }: { data: ActivityFeedData; scope: A
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><h2 className="font-semibold text-ink">{item.displayName}{item.isCurrentUser ? " · You" : ""}</h2><span className="text-xs text-muted">@{item.username}</span></div>
             <p className="mt-2 text-base text-ink">Studied <strong>{item.goalName}</strong></p>
             <p className="mt-1 text-xs text-muted">{date.format(new Date(item.completedAt))}{item.rating ? ` · Session Rating: ${item.rating}/5` : ""}</p>
-            <p className="mt-1 text-xs text-muted">{item.audience === "only_me" ? "Only Me" : item.audience === "everyone" ? "Everyone" : `${item.audienceGroupCount} ${item.audienceGroupCount === 1 ? "Circle" : "Circles"}`}</p>
+            <p className="mt-1 text-xs text-muted">{item.circleId && item.circleName ? <Link className="font-medium underline decoration-line underline-offset-2 hover:text-ink" href={`/groups/${item.circleId}`}>{item.circleName}</Link> : "Only Me"}</p>
             {item.sharedNotes && <div className="mt-4 max-w-2xl"><p className="text-sm leading-6 text-ink">{item.sharedNotes}</p></div>}
             {item.reflectionPhotoUrl && <img alt={`${item.displayName}’s shared study reflection`} className="mt-4 max-h-[28rem] w-full max-w-2xl rounded-field object-cover" loading="lazy" src={item.reflectionPhotoUrl}/>}
             <div className="mt-3"><LoveButton canLove={item.canLove} count={item.loveCount} initiallyLoved={item.isLoved} sessionId={item.id}/></div>

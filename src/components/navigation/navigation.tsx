@@ -9,7 +9,6 @@ const items = [
   { label: "Activity", mobileLabel: "Activity", href: "/activity" },
   { label: "History", mobileLabel: "History", href: "/history" },
   { label: "Circle", mobileLabel: "Circle", href: "/leaderboard" },
-  { label: "Notifications", mobileLabel: "Alerts", href: "/notifications" },
   { label: "Profile", mobileLabel: "Profile", href: "/profile" },
 ] as const;
 
@@ -28,7 +27,7 @@ export function Navigation() {
       </Container>
     </header>
     <nav aria-label="Primary mobile" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-6 px-1">{items.map((item) => {
+      <div className="mx-auto grid max-w-lg grid-cols-5 px-1">{items.map((item) => {
         const active = pathname === item.href || (item.href === "/leaderboard" && pathname.startsWith("/groups/"));
         return <Link aria-current={active ? "page" : undefined} className={`relative flex min-h-16 items-center justify-center text-xs transition-colors ${active ? "font-semibold text-ink" : "font-medium text-muted"}`} href={item.href} key={item.href}>{active && <span className="absolute top-2 size-1 rounded-full bg-coral" />}{item.mobileLabel}</Link>;
       })}</div>

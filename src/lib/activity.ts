@@ -1,7 +1,7 @@
 import type { Json } from "@/types/database";
 import type { GroupSummary } from "@/lib/groups";
 
-export type ActivityScope = "mine" | "everyone" | `circle:${string}`;
+export type ActivityScope = "mine" | "all_circles" | `circle:${string}`;
 export type ActivityItem = {
   id: string;
   displayName: string;
@@ -11,8 +11,8 @@ export type ActivityItem = {
   completedAt: string;
   rating: number | null;
   sharedNotes: string | null;
-  audience: "only_me" | "circles" | "everyone";
-  audienceGroupCount: number;
+  circleId: string | null;
+  circleName: string | null;
   reflectionPhotoPath: string | null;
   reflectionPhotoUrl?: string | null;
   loveCount: number;
@@ -29,9 +29,9 @@ export type ActivityFeed = {
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function parseActivityScope(value: unknown): ActivityScope {
-  if (value === "mine" || value === "everyone") return value;
+  if (value === "mine" || value === "all_circles") return value;
   if (typeof value === "string" && value.startsWith("circle:") && uuidPattern.test(value.slice(7))) return value as ActivityScope;
-  return "everyone";
+  return "all_circles";
 }
 
 export function activityScopeAllowed(scope: ActivityScope, circles: GroupSummary[]) {
@@ -47,7 +47,6 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
     const item = entry as Record<string, Json | undefined>;
     const durationSeconds = Number(item.durationSeconds);
     const rating = item.rating === null ? null : Number(item.rating);
-    const audience: ActivityItem["audience"] = item.audience === "circles" || item.audience === "everyone" ? item.audience : "only_me";
     if (
       typeof item.id !== "string" || !uuidPattern.test(item.id) ||
       typeof item.displayName !== "string" || typeof item.username !== "string" ||
@@ -64,8 +63,8 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
       completedAt: item.completedAt,
       rating,
       sharedNotes: typeof item.sharedNotes === "string" ? item.sharedNotes : null,
-      audience,
-      audienceGroupCount: Math.max(0, Number(item.audienceGroupCount) || 0),
+      circleId: typeof item.circleId === "string" ? item.circleId : null,
+      circleName: typeof item.circleName === "string" ? item.circleName : null,
       reflectionPhotoPath: typeof item.reflectionPhotoPath === "string" ? item.reflectionPhotoPath : null,
       loveCount: Math.max(0, Number(item.loveCount) || 0),
       isLoved: item.isLoved === true,

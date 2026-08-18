@@ -1,22 +1,12 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
-import { LeaderboardPreview } from "@/features/leaderboard/leaderboard-preview";
 import { FocusLauncher } from "@/features/today/focus-launcher";
 import { formatMinutes } from "@/lib/goals/validation";
-import { parseLeaderboardData } from "@/lib/leaderboard";
 import { parseGroups } from "@/lib/groups";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-
-async function WeeklyPace() {
-  const supabase = await createClient();
-  const result = await supabase.rpc("get_application_leaderboard", { p_period: "week", p_limit: 3 });
-  if (result.error) console.error("Today weekly pace lookup failed", { code: result.error.code });
-  return <LeaderboardPreview data={parseLeaderboardData(result.data)} error={Boolean(result.error)} />;
-}
 
 export default async function TodayPage() {
   const supabase = await createClient();
@@ -53,6 +43,6 @@ export default async function TodayPage() {
       {coreDataUnavailable && <div className="mt-5 border-y border-line py-4" role="alert"><p className="text-sm font-semibold text-ink">Today’s data may be incomplete.</p><p className="mt-1 text-sm text-muted">Check your connection and refresh before starting or changing a session.</p></div>}
     </section>
 
-    {!activeSession && <section className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(17rem,0.6fr)] lg:gap-14"><div><div className="flex items-end justify-between gap-4"><h2 className="text-xl font-semibold tracking-[-0.025em] text-ink">Today by goal</h2><Link className="text-sm font-semibold text-coral underline decoration-coral/30 underline-offset-4 hover:decoration-coral" href="/profile">Manage</Link></div>{activeGoals.length ? <div className="mt-5 border-t border-line">{activeGoals.map((goal) => { const minutes = Math.floor((secondsByGoal.get(goal.id) ?? 0) / 60); const target = goal.daily_target_minutes; const progress = target ? Math.min(100, Math.round((minutes / target) * 100)) : null; return <div className="border-b border-line py-4" key={goal.id}><div className="flex items-center justify-between gap-4"><span className="text-sm font-semibold text-ink">{goal.name}</span><span className="text-xs tabular text-muted">{target ? `${minutes} / ${target} min` : `${minutes} min`}</span></div>{progress !== null && <div aria-label={`${goal.name}: ${progress}% of daily target`} className="mt-3 h-1 bg-line" role="progressbar" aria-valuemax={100} aria-valuemin={0} aria-valuenow={progress}><div className="h-full bg-moss" style={{ width: `${progress}%` }} /></div>}</div>; })}</div> : <div className="mt-5 border-y border-line py-7"><p className="text-sm text-muted">Create a goal before starting a study session.</p><Link className="mt-3 inline-block text-sm font-semibold text-coral underline decoration-coral/30 underline-offset-4" href="/profile">Create your first goal</Link></div>}</div><Suspense fallback={<div className="border-y border-line py-5 text-sm text-muted" role="status">Loading weekly pace…</div>}><WeeklyPace /></Suspense></section>}
+    {!activeSession && <section><div className="flex items-end justify-between gap-4"><h2 className="text-xl font-semibold tracking-[-0.025em] text-ink">Today by goal</h2><Link className="text-sm font-semibold text-coral underline decoration-coral/30 underline-offset-4 hover:decoration-coral" href="/profile">Manage</Link></div>{activeGoals.length ? <div className="mt-5 border-t border-line">{activeGoals.map((goal) => { const minutes = Math.floor((secondsByGoal.get(goal.id) ?? 0) / 60); const target = goal.daily_target_minutes; const progress = target ? Math.min(100, Math.round((minutes / target) * 100)) : null; return <div className="border-b border-line py-4" key={goal.id}><div className="flex items-center justify-between gap-4"><span className="text-sm font-semibold text-ink">{goal.name}</span><span className="text-xs tabular text-muted">{target ? `${minutes} / ${target} min` : `${minutes} min`}</span></div>{progress !== null && <div aria-label={`${goal.name}: ${progress}% of daily target`} className="mt-3 h-1 bg-line" role="progressbar" aria-valuemax={100} aria-valuemin={0} aria-valuenow={progress}><div className="h-full bg-moss" style={{ width: `${progress}%` }} /></div>}</div>; })}</div> : <div className="mt-5 border-y border-line py-7"><p className="text-sm text-muted">Create a goal before starting a study session.</p><Link className="mt-3 inline-block text-sm font-semibold text-coral underline decoration-coral/30 underline-offset-4" href="/profile">Create your first goal</Link></div>}</section>}
   </div></AppShell>;
 }
