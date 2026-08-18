@@ -41,7 +41,7 @@ export function ActivityFeed({ data, scope }: { data: ActivityFeedData; scope: A
     : null;
 
   return <>
-    <ol className="border-t border-line">
+    <ol>
       {data.items.map((item) => <li className="border-b border-line py-6 sm:py-7" key={item.id}>
         <article className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:gap-5">
           <Avatar avatarPath={item.avatarPath} className={item.isCurrentUser ? "bg-coral-soft text-coral-dark" : ""} displayName={item.displayName} />

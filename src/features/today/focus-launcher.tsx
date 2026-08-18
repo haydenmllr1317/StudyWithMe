@@ -34,7 +34,7 @@ function StartPanel({ goals }: { goals: GoalOption[] }) {
   return <form action={action} className="border-y border-line py-6 sm:py-8">
     <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)] sm:items-end">
       <label className="text-sm font-semibold text-ink">Study goal<select className="field mt-2" name="goalId" onChange={(event) => setGoalId(event.target.value)} required value={goalId}>{goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.name}</option>)}</select></label>
-      <fieldset><legend className="text-sm font-semibold text-ink">Session style</legend><div className="mt-2 grid grid-cols-2 border border-line bg-white p-1"><label className={`cursor-pointer px-3 py-2 text-center text-sm font-semibold transition-colors ${sessionType === "normal" ? "bg-ink text-white" : "text-muted hover:text-ink"}`}><input checked={sessionType === "normal"} className="sr-only" name="sessionType" onChange={() => setSessionType("normal")} type="radio" value="normal" />Open timer</label><label className={`cursor-pointer px-3 py-2 text-center text-sm font-semibold transition-colors ${sessionType === "pomodoro" ? "bg-ink text-white" : "text-muted hover:text-ink"}`}><input checked={sessionType === "pomodoro"} className="sr-only" name="sessionType" onChange={() => setSessionType("pomodoro")} type="radio" value="pomodoro" />Pomodoro</label></div></fieldset>
+      <fieldset><legend className="text-sm font-semibold text-ink">Session style</legend><div className="mt-2 grid grid-cols-2 rounded-field border border-line bg-white p-1 shadow-[0_2px_10px_rgba(37,49,45,0.04)]"><label className={`cursor-pointer rounded-md px-3 py-2 text-center text-sm font-semibold transition-colors ${sessionType === "normal" ? "bg-moss-soft text-moss-dark" : "text-muted hover:bg-paper hover:text-ink"}`}><input checked={sessionType === "normal"} className="sr-only" name="sessionType" onChange={() => setSessionType("normal")} type="radio" value="normal" />Open timer</label><label className={`cursor-pointer rounded-md px-3 py-2 text-center text-sm font-semibold transition-colors ${sessionType === "pomodoro" ? "bg-moss-soft text-moss-dark" : "text-muted hover:bg-paper hover:text-ink"}`}><input checked={sessionType === "pomodoro"} className="sr-only" name="sessionType" onChange={() => setSessionType("pomodoro")} type="radio" value="pomodoro" />Pomodoro</label></div></fieldset>
     </div>
     {sessionType === "pomodoro" && <label className="mt-5 block max-w-xs text-sm font-semibold text-ink">Focus length<select className="field mt-2" name="pomodoroMinutes" onChange={(event) => setPomodoroMinutes(Number(event.target.value) as 25 | 50)} value={pomodoroMinutes}><option value="25">25 minutes</option><option value="50">50 minutes</option></select></label>}
     <StartButton detail={`${goals.find((goal) => goal.id === goalId)?.name} · ${sessionType === "normal" ? "Open timer" : `${pomodoroMinutes} minute focus`}`} />
@@ -42,24 +42,63 @@ function StartPanel({ goals }: { goals: GoalOption[] }) {
   </form>;
 }
 
-function Reflection({ session, goalName, onDone }: { session: Tables<"study_sessions">; goalName: string; onDone: () => void }) {
-  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Session complete</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(session.duration_seconds ?? 0)} with {goalName}</h2><p className="mt-2 text-sm text-muted">Your study time is already safe. Add a reflection, or finish without one.</p><ReflectionForm onSaved={onDone} sessionId={session.id}/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink" onClick={onDone} type="button">Not now</button></section>;
+function Reflection({ session, goalName, durationSeconds, onDone }: { session: Tables<"study_sessions">; goalName: string; durationSeconds: number; onDone: () => void }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string>();
+  async function skip() {
+    setPending(true);
+    setError(undefined);
+    const formData = new FormData();
+    formData.set("sessionId", session.id);
+    const result = await finishSessionAction(initialSessionActionState, formData);
+    if (result.status === "error") {
+      setError(result.message ?? "The session could not be finished.");
+      setPending(false);
+      return;
+    }
+    onDone();
+  }
+  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Finish session</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(durationSeconds)} with {goalName}</h2><p className="mt-2 text-sm text-muted">Add a quick reflection, or skip and finish without one.</p><ReflectionForm finishBeforeSave initialShared onSaved={onDone} sessionId={session.id}/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink disabled:opacity-50" disabled={pending} onClick={skip} type="button">{pending ? "Finishing…" : "Skip reflection"}</button>{error && <p aria-live="polite" className="mt-3 text-sm text-coral-dark">{error}</p>}</section>;
 }
 
 function ActivePanel({ session }: { session: ActiveSession }) {
   const router = useRouter();
   const [now, setNow] = useState(0);
-  const [finishState, finishAction] = useActionState(finishSessionAction, initialSessionActionState);
+  const [reflectionSession, setReflectionSession] = useState<Tables<"study_sessions"> | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const [stopError, setStopError] = useState<string>();
   const [pauseState, pauseAction] = useActionState(session.paused_at ? resumeSessionAction : pauseSessionAction, initialSessionActionState);
   useEffect(() => { const update = () => setNow(Date.now()); const timer = window.setInterval(update, 1000); document.addEventListener("visibilitychange", update); return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", update); }; }, []);
-  if (finishState.session) return <Reflection goalName={session.goalName} onDone={() => router.refresh()} session={finishState.session} />;
 
   const effectiveNow = session.paused_at ? new Date(session.paused_at).getTime() : now;
   const elapsed = Math.max(0, Math.floor((effectiveNow - new Date(session.started_at).getTime()) / 1000) - session.paused_seconds);
+  if (reflectionSession) {
+    const stoppedAt = reflectionSession.paused_at ? new Date(reflectionSession.paused_at).getTime() : now;
+    const stoppedDuration = Math.max(0, Math.floor((stoppedAt - new Date(reflectionSession.started_at).getTime()) / 1000) - reflectionSession.paused_seconds);
+    return <Reflection durationSeconds={stoppedDuration} goalName={session.goalName} onDone={() => router.refresh()} session={reflectionSession} />;
+  }
+  async function openReflection() {
+    setStopping(true);
+    setStopError(undefined);
+    if (session.paused_at) {
+      setReflectionSession(session);
+      setStopping(false);
+      return;
+    }
+    const formData = new FormData();
+    formData.set("sessionId", session.id);
+    const result = await pauseSessionAction(initialSessionActionState, formData);
+    if (result.status === "error" || !result.session) {
+      setStopError(result.message ?? "The reflection step could not be opened. Try again.");
+    } else {
+      setReflectionSession(result.session);
+    }
+    setStopping(false);
+  }
   const remaining = Math.max(0, (session.pomodoro_minutes ?? 25) * 60 - elapsed);
   const pomodoroComplete = session.session_type === "pomodoro" && remaining === 0;
   const display = session.session_type === "pomodoro" ? formatClock(remaining) : formatClock(elapsed);
-  return <section aria-labelledby="active-session-heading" className="border-y border-line py-8 sm:py-10"><div className="flex items-start justify-between gap-5"><div><p className="measure-label">{session.paused_at ? "Session paused" : pomodoroComplete ? "Focus interval complete" : "Studying now"}</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] text-ink" id="active-session-heading">{session.goalName}</h2><p className="mt-1 text-sm text-muted">{session.session_type === "pomodoro" ? `${session.pomodoro_minutes ?? 25} minute Pomodoro` : "Open study session"}</p></div><span className={`mt-1 size-3 shrink-0 rounded-full ${session.paused_at ? "bg-line" : pomodoroComplete ? "bg-moss" : "bg-coral"}`}><span className="sr-only">{session.paused_at ? "Session paused" : pomodoroComplete ? "Focus interval complete" : "Session active"}</span></span></div><p aria-label={session.session_type === "pomodoro" ? `${remaining} seconds remaining` : `${elapsed} seconds elapsed`} className="mt-9 text-[4.25rem] font-semibold leading-none tracking-[-0.04em] tabular text-ink sm:text-8xl">{display}</p><p className="mt-3 text-sm text-muted">{session.paused_at ? "Paused time is not counted toward this session." : pomodoroComplete ? `Your ${session.pomodoro_minutes ?? 25} minutes are complete. Finish when you’re ready.` : session.session_type === "pomodoro" ? "Remaining focus time" : "Elapsed study time"}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><form action={pauseAction}><input name="sessionId" type="hidden" value={session.id} /><PendingButton className="w-full sm:w-auto">{session.paused_at ? "Resume Session" : "Pause Session"}</PendingButton></form><form action={finishAction}><input name="sessionId" type="hidden" value={session.id} /><button className="min-h-12 w-full rounded-field border border-ink px-5 text-sm font-semibold text-ink hover:bg-ink hover:text-white sm:w-auto" type="submit">Stop and Finish</button></form></div>{pauseState.message && <p aria-live="polite" className={`mt-3 text-sm ${pauseState.status === "error" ? "text-coral-dark" : "text-moss-dark"}`}>{pauseState.message}</p>}{finishState.message && <p aria-live="polite" className={`mt-3 max-w-xl text-sm ${finishState.status === "error" ? "text-coral-dark" : "text-moss-dark"}`}>{finishState.message}</p>}</section>;
+  return <section aria-labelledby="active-session-heading" className="border-y border-line py-8 sm:py-10"><div className="flex items-start justify-between gap-5"><div><p className="measure-label">{session.paused_at ? "Session paused" : pomodoroComplete ? "Focus interval complete" : "Studying now"}</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] text-ink" id="active-session-heading">{session.goalName}</h2><p className="mt-1 text-sm text-muted">{session.session_type === "pomodoro" ? `${session.pomodoro_minutes ?? 25} minute Pomodoro` : "Open study session"}</p></div><span className={`mt-1 size-3 shrink-0 rounded-full ${session.paused_at ? "bg-line" : pomodoroComplete ? "bg-moss" : "bg-coral"}`}><span className="sr-only">{session.paused_at ? "Session paused" : pomodoroComplete ? "Focus interval complete" : "Session active"}</span></span></div><p aria-label={session.session_type === "pomodoro" ? `${remaining} seconds remaining` : `${elapsed} seconds elapsed`} className="mt-9 text-[4.25rem] font-semibold leading-none tracking-[-0.04em] tabular text-ink sm:text-8xl">{display}</p><p className="mt-3 text-sm text-muted">{session.paused_at ? "Paused time is not counted toward this session." : pomodoroComplete ? `Your ${session.pomodoro_minutes ?? 25} minutes are complete. Finish when you’re ready.` : session.session_type === "pomodoro" ? "Remaining focus time" : "Elapsed study time"}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><form action={pauseAction}><input name="sessionId" type="hidden" value={session.id} /><PendingButton className="w-full sm:w-auto">{session.paused_at ? "Resume Session" : "Pause Session"}</PendingButton></form><button className="min-h-12 w-full rounded-field border border-ink px-5 text-sm font-semibold text-ink hover:bg-ink hover:text-white disabled:cursor-wait disabled:opacity-60 sm:w-auto" disabled={stopping} onClick={openReflection} type="button">{stopping ? "Opening reflection…" : "Stop and Finish"}</button></div>{pauseState.message && <p aria-live="polite" className={`mt-3 text-sm ${pauseState.status === "error" ? "text-coral-dark" : "text-moss-dark"}`}>{pauseState.message}</p>}{stopError && <p aria-live="polite" className="mt-3 max-w-xl text-sm text-coral-dark">{stopError}</p>}</section>;
 }
 
 export function FocusLauncher({ activeSession, goals }: { activeSession: ActiveSession | null; goals: GoalOption[] }) {
