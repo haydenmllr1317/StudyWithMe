@@ -59,7 +59,7 @@ function Reflection({ session, goalName, durationSeconds, circles, onDone }: { s
     }
     onDone();
   }
-  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Finish session</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(durationSeconds)} with {goalName}</h2><p className="mt-2 text-sm text-muted">Add a quick reflection, choose its audience, or skip without posting.</p><ReflectionForm circles={circles} finishBeforeSave onSaved={onDone} sessionId={session.id} showAudience/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink disabled:opacity-50" disabled={pending} onClick={skip} type="button">{pending ? "Finishing…" : "Skip reflection"}</button>{error && <p aria-live="polite" className="mt-3 text-sm text-coral-dark">{error}</p>}</section>;
+  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Finish session</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(durationSeconds)} with {goalName}</h2><ReflectionForm circles={circles} finishBeforeSave onSaved={onDone} sessionId={session.id} showAudience/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink disabled:opacity-50" disabled={pending} onClick={skip} type="button">{pending ? "Finishing…" : "Skip reflection"}</button>{error && <p aria-live="polite" className="mt-3 text-sm text-coral-dark">{error}</p>}</section>;
 }
 
 function ActivePanel({ session, circles }: { session: ActiveSession; circles: GroupSummary[] }) {

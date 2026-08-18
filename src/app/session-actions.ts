@@ -79,17 +79,17 @@ export async function saveReflectionAction(_state: SessionActionState, formData:
   const rawRating = String(formData.get("rating") ?? "");
   const rating = rawRating ? Number(rawRating) : null;
   const shareNotes = formData.get("shareNotes") === "on";
-  const circleValue = formData.get("activityCircleId");
-  const circleId = typeof circleValue === "string" && circleValue ? circleValue : null;
+  const hasAudienceSelection = formData.get("audienceSelectionPresent") === "true";
+  const circleIds = formData.getAll("activityCircleIds").map(String).filter(Boolean);
   const reflectionPhotoPath = String(formData.get("reflectionPhotoPath") ?? "") || null;
   if (!/^[0-9a-f-]{36}$/i.test(sessionId) || notes.length > 5000 || (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5)) || (reflectionPhotoPath && !reflectionPhotoPath.includes(`/${sessionId}/reflection-`))) {
     return { status: "error", message: "Check your notes and rating, then try again." };
   }
   const { supabase, authenticated } = await authenticatedClient();
   if (!authenticated) return { status: "error", message: "Your session expired. Sign in again and retry." };
-  if (circleId && !/^[0-9a-f-]{36}$/i.test(circleId)) return { status: "error", message: "Choose a valid Circle." };
-  const reflectionArgs = circleValue !== null
-    ? { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_reflection_photo_path: reflectionPhotoPath, ...(circleId ? { p_activity_circle_id: circleId } : {}) }
+  if (new Set(circleIds).size !== circleIds.length || circleIds.some((id) => !/^[0-9a-f-]{36}$/i.test(id))) return { status: "error", message: "Choose valid Circles." };
+  const reflectionArgs = hasAudienceSelection
+    ? { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_reflection_photo_path: reflectionPhotoPath, p_activity_circle_ids: circleIds }
     : { p_notes: notes, p_rating: rating as number, p_session_id: sessionId, p_share_notes: shareNotes, p_reflection_photo_path: reflectionPhotoPath };
   const { data, error } = await supabase.rpc("update_study_session_reflection", reflectionArgs);
   if (error || !data) return { status: "error", message: "Your session is saved, but the reflection could not be updated. Try again." };
@@ -102,20 +102,19 @@ export async function createManualSessionAction(_state: SessionActionState, form
   const localTime=String(formData.get("startTime")??"");
   const durationMinutes=Number(formData.get("durationMinutes"));
   const goalValue=String(formData.get("goalId")??"");
-  const circleValue=String(formData.get("activityCircleId")??"");
+  const circleIds=formData.getAll("activityCircleIds").map(String).filter(Boolean);
   const ratingValue=String(formData.get("rating")??"");
   const notes=String(formData.get("notes")??"").trim();
   const datePattern=/^\d{4}-\d{2}-\d{2}$/; const timePattern=/^(?:[01]\d|2[0-3]):[0-5]\d$/; const uuid=/^[0-9a-f-]{36}$/i;
   const rating=ratingValue?Number(ratingValue):null;
-  if(!datePattern.test(localDate)||!timePattern.test(localTime)||!Number.isInteger(durationMinutes)||durationMinutes<1||durationMinutes>1440||notes.length>5000||(rating!==null&&(!Number.isInteger(rating)||rating<1||rating>5))||!uuid.test(goalValue)||(circleValue&&!uuid.test(circleValue))){
+  if(!datePattern.test(localDate)||!timePattern.test(localTime)||!Number.isInteger(durationMinutes)||durationMinutes<1||durationMinutes>1440||notes.length>5000||(rating!==null&&(!Number.isInteger(rating)||rating<1||rating>5))||!uuid.test(goalValue)||new Set(circleIds).size!==circleIds.length||circleIds.some(id=>!uuid.test(id))){
     return {status:"error",message:"Check the date, start time, duration, and optional details."};
   }
   const {supabase,authenticated}=await authenticatedClient();
   if(!authenticated)return {status:"error",message:"Your session expired. Sign in again and retry."};
   const {data,error}=await supabase.rpc("create_manual_study_session",{
     p_local_date:localDate,p_local_time:localTime,p_duration_minutes:durationMinutes,
-    p_goal_id:goalValue,...(circleValue?{p_activity_circle_id:circleValue}:{}),
-    ...(rating!==null?{p_rating:rating}:{}),...(notes?{p_notes:notes}:{}),
+    p_goal_id:goalValue,p_activity_circle_ids:circleIds,p_rating:rating as number,p_notes:notes,
   });
   if(error||!data){
     console.error("Manual session creation failed",{code:error?.code});

@@ -49,7 +49,7 @@ export function ActivityFeed({ data, scope }: { data: ActivityFeedData; scope: A
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><h2 className="font-semibold text-ink">{item.displayName}{item.isCurrentUser ? " · You" : ""}</h2><span className="text-xs text-muted">@{item.username}</span></div>
             <p className="mt-2 text-base text-ink">Studied <strong>{item.goalName === "Study session" ? "Legacy session" : item.goalName}</strong></p>
             <p className="mt-1 text-xs text-muted">{date.format(new Date(item.completedAt))}{item.rating ? ` · Session Rating: ${item.rating}/5` : ""}</p>
-            <p className="mt-1 text-xs text-muted">{item.circleId && item.circleName ? <Link className="font-medium underline decoration-line underline-offset-2 hover:text-ink" href={`/groups/${item.circleId}`}>{item.circleName}</Link> : "Only Me"}</p>
+            <p className="mt-1 flex flex-wrap gap-x-1 text-xs text-muted">{item.circles.length ? item.circles.map((circle,index)=><span key={circle.id}>{index>0&&<span aria-hidden="true">· </span>}<Link className="font-medium underline decoration-line underline-offset-2 hover:text-ink" href={`/groups/${circle.id}`}>{circle.name}</Link></span>) : "Only Me"}</p>
             {item.sharedNotes && <div className="mt-4 max-w-2xl"><p className="text-sm leading-6 text-ink">{item.sharedNotes}</p></div>}
             {item.reflectionPhotoUrl && <img alt={`${item.displayName}’s shared study reflection`} className="mt-4 max-h-[28rem] w-full max-w-2xl rounded-field object-cover" loading="lazy" src={item.reflectionPhotoUrl}/>}
             <div className="mt-3"><LoveButton canLove={item.canLove} count={item.loveCount} initiallyLoved={item.isLoved} sessionId={item.id}/></div>

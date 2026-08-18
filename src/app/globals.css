@@ -47,6 +47,10 @@ button, input, select, textarea { font: inherit; }
       width: 100%;
       max-width: 100%;
       min-width: 0;
+      block-size: 3rem;
+      min-block-size: 3rem;
+      padding-block: 0;
+      line-height: 3rem;
       -webkit-appearance: none;
       appearance: none;
     }
@@ -55,6 +59,13 @@ button, input, select, textarea { font: inherit; }
     .manual-temporal-field::-webkit-datetime-edit {
       width: 100%;
       min-width: 0;
+      block-size: 100%;
+      padding: 0;
+    }
+
+    .manual-temporal-field::-webkit-datetime-edit {
+      display: flex;
+      align-items: center;
     }
   }
 

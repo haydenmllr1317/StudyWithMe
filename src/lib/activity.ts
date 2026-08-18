@@ -11,8 +11,7 @@ export type ActivityItem = {
   completedAt: string;
   rating: number | null;
   sharedNotes: string | null;
-  circleId: string | null;
-  circleName: string | null;
+  circles: { id: string; name: string }[];
   reflectionPhotoPath: string | null;
   reflectionPhotoUrl?: string | null;
   loveCount: number;
@@ -54,6 +53,11 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
       !Number.isFinite(durationSeconds) || durationSeconds <= 0 ||
       (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5))
     ) return [];
+    const circles = Array.isArray(item.circles) ? item.circles.flatMap((entry) => {
+      if (!entry || Array.isArray(entry) || typeof entry !== "object") return [];
+      const circle = entry as Record<string, Json | undefined>;
+      return typeof circle.id === "string" && uuidPattern.test(circle.id) && typeof circle.name === "string" ? [{ id: circle.id, name: circle.name }] : [];
+    }) : [];
     return [{
       id: item.id,
       displayName: item.displayName,
@@ -63,8 +67,7 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
       completedAt: item.completedAt,
       rating,
       sharedNotes: typeof item.sharedNotes === "string" ? item.sharedNotes : null,
-      circleId: typeof item.circleId === "string" ? item.circleId : null,
-      circleName: typeof item.circleName === "string" ? item.circleName : null,
+      circles,
       reflectionPhotoPath: typeof item.reflectionPhotoPath === "string" ? item.reflectionPhotoPath : null,
       loveCount: Math.max(0, Number(item.loveCount) || 0),
       isLoved: item.isLoved === true,
