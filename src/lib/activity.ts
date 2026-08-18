@@ -5,14 +5,14 @@ export type ActivityScope = "mine" | "everyone" | `circle:${string}`;
 export type ActivityItem = {
   id: string;
   displayName: string;
-  avatarPath: string | null;
   username: string;
   goalName: string;
   durationSeconds: number;
   completedAt: string;
   rating: number | null;
   sharedNotes: string | null;
-  notesShared: boolean;
+  audience: "only_me" | "circles" | "everyone";
+  audienceGroupCount: number;
   reflectionPhotoPath: string | null;
   reflectionPhotoUrl?: string | null;
   loveCount: number;
@@ -47,6 +47,7 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
     const item = entry as Record<string, Json | undefined>;
     const durationSeconds = Number(item.durationSeconds);
     const rating = item.rating === null ? null : Number(item.rating);
+    const audience: ActivityItem["audience"] = item.audience === "circles" || item.audience === "everyone" ? item.audience : "only_me";
     if (
       typeof item.id !== "string" || !uuidPattern.test(item.id) ||
       typeof item.displayName !== "string" || typeof item.username !== "string" ||
@@ -57,14 +58,14 @@ export function parseActivityFeed(value: Json | null): ActivityFeed | null {
     return [{
       id: item.id,
       displayName: item.displayName,
-      avatarPath: typeof item.avatarPath === "string" ? item.avatarPath : null,
       username: item.username,
       goalName: item.goalName,
       durationSeconds,
       completedAt: item.completedAt,
       rating,
       sharedNotes: typeof item.sharedNotes === "string" ? item.sharedNotes : null,
-      notesShared: item.notesShared === true,
+      audience,
+      audienceGroupCount: Math.max(0, Number(item.audienceGroupCount) || 0),
       reflectionPhotoPath: typeof item.reflectionPhotoPath === "string" ? item.reflectionPhotoPath : null,
       loveCount: Math.max(0, Number(item.loveCount) || 0),
       isLoved: item.isLoved === true,

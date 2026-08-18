@@ -48,10 +48,10 @@ async function setArchived(formData: FormData, isArchived: boolean): Promise<Goa
   const goalId = String(formData.get("goalId") ?? "");
   const { supabase, userId } = await authenticatedContext();
   if (!userId) return { status: "error", message: "Your session expired. Sign in again and retry." };
-  const { data, error } = await supabase.from("study_goals").update({ is_archived: isArchived }).eq("id", goalId).eq("user_id", userId).select("id").maybeSingle();
+  const { data, error } = await supabase.from("study_goals").update({ is_archived: isArchived }).eq("id", goalId).eq("user_id", userId).select("*").maybeSingle();
   if (error || !data) return { status: "error", message: "That goal could not be changed." };
   refreshGoals();
-  return { status: "success", message: isArchived ? "Goal archived." : "Goal restored." };
+  return { status: "success", message: isArchived ? "Goal archived." : "Goal restored.", goal: data };
 }
 
 export async function archiveGoalAction(_state: GoalActionState, formData: FormData) { return setArchived(formData, true); }

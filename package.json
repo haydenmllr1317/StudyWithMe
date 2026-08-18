@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/activity.test.mjs src/lib/analytics.test.mjs src/lib/avatar.test.mjs src/lib/auth/*.test.mjs src/lib/goals/*.test.mjs src/lib/groups.test.mjs src/lib/leaderboard.test.mjs src/lib/sessions/*.test.mjs src/lib/time/*.test.mjs"
+    "test": "node --experimental-strip-types --test src/lib/activity.test.mjs src/lib/analytics.test.mjs src/lib/auth/*.test.mjs src/lib/goals/*.test.mjs src/lib/groups.test.mjs src/lib/leaderboard.test.mjs src/lib/sessions/*.test.mjs src/lib/time/*.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

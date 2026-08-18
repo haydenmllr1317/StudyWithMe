@@ -18,7 +18,7 @@ profiles
 
 ## Tables
 
-- `profiles`: one social identity per Auth user. The primary key references `auth.users` with cascade deletion. Usernames use `citext` for case-insensitive uniqueness and a normalized format. `timezone` stores an IANA name for local calendar boundaries. `avatar_url` stores a relative object path in the `avatars` Storage bucket, not a signed or arbitrary external URL.
+- `profiles`: one social identity per Auth user. The primary key references `auth.users` with cascade deletion. Usernames use `citext` for case-insensitive uniqueness and a normalized format. `timezone` stores an IANA name for local calendar boundaries. Identity is rendered with initials; profile photos are retired.
 - `study_goals`: private, user-owned study categories with optional descriptions and daily/weekly targets. Archiving preserves session history.
 - `study_sessions`: source-of-truth time intervals. A session is either active (`ended_at` and `duration_seconds` are null) or completed with a non-negative, internally consistent duration. The composite goal foreign key prevents assigning another user’s goal. A partial unique index permits only one active session per user. `share_notes` defaults to false and controls only whether the current notes value appears in Activity.
 - `groups`: owner-controlled private study circles with unique 192-bit invite tokens. Tokens are visible only to owners through an authorized group-detail RPC.
@@ -41,7 +41,7 @@ Private `security definer` membership helpers live in the unexposed `private` sc
 
 The `avatars` bucket is public-read so Activity, Leaderboards, and Circle rosters can render cacheable photos without signed-URL fan-out. Writes remain authenticated: Storage policies constrain inserts, updates, and deletes to the caller’s UUID folder and owned objects. The bucket accepts JPEG, PNG, and WebP files up to 4 MB. The browser crops uploads to a 512px square WebP when supported, and replacements use immutable versioned filenames before the previous owned object is removed.
 
-Social RPCs expose only the relative `avatarPath` alongside their existing reviewed identity projection. They do not broaden access to full profile rows.
+Social RPCs expose only reviewed display-name and username identity fields. They do not broaden access to full profile rows.
 
 ## Source and derived data
 

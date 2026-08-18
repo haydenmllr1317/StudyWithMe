@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatClock, formatDuration } from "@/lib/sessions/format";
 import { ReflectionForm } from "@/features/sessions/reflection-form";
 import type { Tables } from "@/types/database";
+import type { GroupSummary } from "@/lib/groups";
 
 type GoalOption = Pick<Tables<"study_goals">, "id" | "name">;
 type ActiveSession = Tables<"study_sessions"> & { goalName: string };
@@ -42,7 +43,7 @@ function StartPanel({ goals }: { goals: GoalOption[] }) {
   </form>;
 }
 
-function Reflection({ session, goalName, durationSeconds, onDone }: { session: Tables<"study_sessions">; goalName: string; durationSeconds: number; onDone: () => void }) {
+function Reflection({ session, goalName, durationSeconds, circles, onDone }: { session: Tables<"study_sessions">; goalName: string; durationSeconds: number; circles: GroupSummary[]; onDone: () => void }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
   async function skip() {
@@ -58,10 +59,10 @@ function Reflection({ session, goalName, durationSeconds, onDone }: { session: T
     }
     onDone();
   }
-  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Finish session</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(durationSeconds)} with {goalName}</h2><p className="mt-2 text-sm text-muted">Add a quick reflection, or skip and finish without one.</p><ReflectionForm finishBeforeSave initialShared onSaved={onDone} sessionId={session.id}/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink disabled:opacity-50" disabled={pending} onClick={skip} type="button">{pending ? "Finishing…" : "Skip reflection"}</button>{error && <p aria-live="polite" className="mt-3 text-sm text-coral-dark">{error}</p>}</section>;
+  return <section aria-labelledby="reflection-heading" className="border-y border-line py-7"><p className="measure-label">Finish session</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink" id="reflection-heading">{formatDuration(durationSeconds)} with {goalName}</h2><p className="mt-2 text-sm text-muted">Add a quick reflection, choose its audience, or skip without posting.</p><ReflectionForm circles={circles} finishBeforeSave onSaved={onDone} sessionId={session.id} showAudience/><button className="mt-3 min-h-11 text-sm font-semibold text-muted hover:text-ink disabled:opacity-50" disabled={pending} onClick={skip} type="button">{pending ? "Finishing…" : "Skip reflection"}</button>{error && <p aria-live="polite" className="mt-3 text-sm text-coral-dark">{error}</p>}</section>;
 }
 
-function ActivePanel({ session }: { session: ActiveSession }) {
+function ActivePanel({ session, circles }: { session: ActiveSession; circles: GroupSummary[] }) {
   const router = useRouter();
   const [now, setNow] = useState(0);
   const [reflectionSession, setReflectionSession] = useState<Tables<"study_sessions"> | null>(null);
@@ -75,7 +76,7 @@ function ActivePanel({ session }: { session: ActiveSession }) {
   if (reflectionSession) {
     const stoppedAt = reflectionSession.paused_at ? new Date(reflectionSession.paused_at).getTime() : now;
     const stoppedDuration = Math.max(0, Math.floor((stoppedAt - new Date(reflectionSession.started_at).getTime()) / 1000) - reflectionSession.paused_seconds);
-    return <Reflection durationSeconds={stoppedDuration} goalName={session.goalName} onDone={() => router.refresh()} session={reflectionSession} />;
+    return <Reflection circles={circles} durationSeconds={stoppedDuration} goalName={session.goalName} onDone={() => router.refresh()} session={reflectionSession} />;
   }
   async function openReflection() {
     setStopping(true);
@@ -101,6 +102,6 @@ function ActivePanel({ session }: { session: ActiveSession }) {
   return <section aria-labelledby="active-session-heading" className="border-y border-line py-8 sm:py-10"><div className="flex items-start justify-between gap-5"><div><p className="measure-label">{session.paused_at ? "Session paused" : pomodoroComplete ? "Focus interval complete" : "Studying now"}</p><h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] text-ink" id="active-session-heading">{session.goalName}</h2><p className="mt-1 text-sm text-muted">{session.session_type === "pomodoro" ? `${session.pomodoro_minutes ?? 25} minute Pomodoro` : "Open study session"}</p></div><span className={`mt-1 size-3 shrink-0 rounded-full ${session.paused_at ? "bg-line" : pomodoroComplete ? "bg-moss" : "bg-coral"}`}><span className="sr-only">{session.paused_at ? "Session paused" : pomodoroComplete ? "Focus interval complete" : "Session active"}</span></span></div><p aria-label={session.session_type === "pomodoro" ? `${remaining} seconds remaining` : `${elapsed} seconds elapsed`} className="mt-9 text-[4.25rem] font-semibold leading-none tracking-[-0.04em] tabular text-ink sm:text-8xl">{display}</p><p className="mt-3 text-sm text-muted">{session.paused_at ? "Paused time is not counted toward this session." : pomodoroComplete ? `Your ${session.pomodoro_minutes ?? 25} minutes are complete. Finish when you’re ready.` : session.session_type === "pomodoro" ? "Remaining focus time" : "Elapsed study time"}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><form action={pauseAction}><input name="sessionId" type="hidden" value={session.id} /><PendingButton className="w-full sm:w-auto">{session.paused_at ? "Resume Session" : "Pause Session"}</PendingButton></form><button className="min-h-12 w-full rounded-field border border-ink px-5 text-sm font-semibold text-ink hover:bg-ink hover:text-white disabled:cursor-wait disabled:opacity-60 sm:w-auto" disabled={stopping} onClick={openReflection} type="button">{stopping ? "Opening reflection…" : "Stop and Finish"}</button></div>{pauseState.message && <p aria-live="polite" className={`mt-3 text-sm ${pauseState.status === "error" ? "text-coral-dark" : "text-moss-dark"}`}>{pauseState.message}</p>}{stopError && <p aria-live="polite" className="mt-3 max-w-xl text-sm text-coral-dark">{stopError}</p>}</section>;
 }
 
-export function FocusLauncher({ activeSession, goals }: { activeSession: ActiveSession | null; goals: GoalOption[] }) {
-  return activeSession ? <ActivePanel session={activeSession} /> : <StartPanel goals={goals} />;
+export function FocusLauncher({ activeSession, goals, circles }: { activeSession: ActiveSession | null; goals: GoalOption[]; circles: GroupSummary[] }) {
+  return activeSession ? <ActivePanel circles={circles} session={activeSession} /> : <StartPanel goals={goals} />;
 }

@@ -1,8 +1,10 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { GoalManager } from "@/features/goals/goal-manager";
-import { AvatarUpload } from "@/features/profile/avatar-upload";
+import { Avatar } from "@/components/ui/avatar";
 import { formatDuration } from "@/lib/sessions/format";
 import type { Json, Tables } from "@/types/database";
+
+type Profile = Omit<Tables<"profiles">, "avatar_url">;
 
 function numberField(value: Json | undefined) {
   const parsed = Number(value);
@@ -12,7 +14,7 @@ function numberField(value: Json | undefined) {
 export function ProfileView({ email, goals, profile, stats }: {
   email: string;
   goals: Tables<"study_goals">[];
-  profile: Tables<"profiles"> | null;
+  profile: Profile | null;
   stats: Json | null;
 }) {
   const hasStats = Boolean(stats && !Array.isArray(stats) && typeof stats === "object");
@@ -25,7 +27,7 @@ export function ProfileView({ email, goals, profile, stats }: {
   return <div className="space-y-12">
     <section className="grid gap-7 border-b border-line pb-10 md:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)]">
       <div className="flex items-center gap-5">
-        <AvatarUpload avatarPath={profile?.avatar_url ?? null} displayName={displayName ?? "StudyWithMe learner"} />
+        <Avatar className="bg-moss-soft text-moss-dark" displayName={displayName ?? "StudyWithMe learner"} size="lg" />
         <div className="min-w-0">
           <h2 className="truncate text-2xl font-semibold tracking-[-0.03em] text-ink">{displayName ?? "Profile unavailable"}</h2>
           {profile ? <>

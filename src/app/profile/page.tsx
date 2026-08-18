@@ -13,7 +13,7 @@ export default async function ProfilePage() {
   if (claimsError || typeof userId !== "string") redirect("/login");
 
   const [{ data: profile, error: profileError }, { data: goals, error: goalsError }, { data: stats, error: statsError }] = await Promise.all([
-    supabase.from("profiles").select("id, username, display_name, avatar_url, timezone, created_at, updated_at").eq("id", userId).maybeSingle(),
+    supabase.from("profiles").select("id, username, display_name, timezone, created_at, updated_at").eq("id", userId).maybeSingle(),
     supabase.from("study_goals").select("*").eq("user_id", userId).order("created_at", { ascending: true }),
     supabase.rpc("get_personal_history_stats", { p_days: 30 }),
   ]);

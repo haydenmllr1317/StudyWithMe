@@ -42,16 +42,17 @@ export function ActivityFeed({ data, scope }: { data: ActivityFeedData; scope: A
 
   return <>
     <ol>
-      {data.items.map((item) => <li className="border-b border-line py-6 sm:py-7" key={item.id}>
+      {data.items.map((item) => <li className="scroll-mt-24 border-b border-line py-6 sm:py-7" id={`session-${item.id}`} key={item.id}>
         <article className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:gap-5">
-          <Avatar avatarPath={item.avatarPath} className={item.isCurrentUser ? "bg-coral-soft text-coral-dark" : ""} displayName={item.displayName} />
+          <Avatar className={item.isCurrentUser ? "bg-coral-soft text-coral-dark" : ""} displayName={item.displayName} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1"><h2 className="font-semibold text-ink">{item.displayName}{item.isCurrentUser ? " · You" : ""}</h2><span className="text-xs text-muted">@{item.username}</span></div>
             <p className="mt-2 text-base text-ink">Studied <strong>{item.goalName}</strong></p>
-            <p className="mt-1 text-xs text-muted">{date.format(new Date(item.completedAt))}{item.rating ? ` · ${item.rating}/5` : ""}</p>
-            {item.sharedNotes && <div className="mt-4 max-w-2xl border-t border-line pt-4"><p className="text-sm leading-6 text-ink">{item.sharedNotes}</p></div>}
+            <p className="mt-1 text-xs text-muted">{date.format(new Date(item.completedAt))}{item.rating ? ` · Session Rating: ${item.rating}/5` : ""}</p>
+            <p className="mt-1 text-xs text-muted">{item.audience === "only_me" ? "Only Me" : item.audience === "everyone" ? "Everyone" : `${item.audienceGroupCount} ${item.audienceGroupCount === 1 ? "Circle" : "Circles"}`}</p>
+            {item.sharedNotes && <div className="mt-4 max-w-2xl"><p className="text-sm leading-6 text-ink">{item.sharedNotes}</p></div>}
             {item.reflectionPhotoUrl && <img alt={`${item.displayName}’s shared study reflection`} className="mt-4 max-h-[28rem] w-full max-w-2xl rounded-field object-cover" loading="lazy" src={item.reflectionPhotoUrl}/>}
-            <div className="mt-3">{item.canLove ? <LoveButton count={item.loveCount} initiallyLoved={item.isLoved} sessionId={item.id}/> : <p className="min-h-11 py-3 text-xs text-muted">{item.loveCount} {item.loveCount===1?"love":"loves"}</p>}</div>
+            <div className="mt-3"><LoveButton canLove={item.canLove} count={item.loveCount} initiallyLoved={item.isLoved} sessionId={item.id}/></div>
           </div>
           <strong className="col-start-2 row-start-2 self-start text-lg tabular text-ink sm:col-start-3 sm:row-start-1 sm:text-base">{formatDuration(item.durationSeconds)}</strong>
         </article>

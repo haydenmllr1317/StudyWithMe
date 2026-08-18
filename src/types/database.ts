@@ -191,6 +191,7 @@ export type Database = {
       }
       study_sessions: {
         Row: {
+          activity_audience?: string
           created_at: string
           duration_seconds: number | null
           ended_at: string | null
@@ -209,6 +210,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          activity_audience?: string
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -227,6 +229,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          activity_audience?: string
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -316,6 +319,8 @@ export type Database = {
       }
       get_my_study_groups: { Args: never; Returns: Json }
       get_personal_history_stats: { Args: { p_days?: number }; Returns: Json }
+      get_notifications: { Args: { p_limit?: number }; Returns: Json }
+      get_session_likers: { Args: { p_session_id: string }; Returns: Json }
       get_study_analytics: {
         Args: {
           p_group_id?: string
@@ -342,6 +347,7 @@ export type Database = {
       }
       is_username_available: { Args: { candidate: string }; Returns: boolean }
       join_study_group: { Args: { p_token: string }; Returns: string }
+      mark_notifications_read: { Args: { p_notification_id?: string }; Returns: number }
       leave_study_group: { Args: { p_group_id: string }; Returns: undefined }
       pause_study_session: {
         Args: { p_session_id: string }
@@ -498,6 +504,18 @@ export type Database = {
               isOneToOne: true
               isSetofReturn: false
             }
+          }
+        | {
+            Args: {
+              p_activity_audience: string
+              p_group_ids?: string[]
+              p_notes: string
+              p_rating: number
+              p_reflection_photo_path: string
+              p_session_id: string
+              p_share_notes: boolean
+            }
+            Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
           }
         | {
             Args: {

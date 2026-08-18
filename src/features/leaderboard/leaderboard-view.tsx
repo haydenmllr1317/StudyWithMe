@@ -12,7 +12,7 @@ import { formatDuration } from "@/lib/sessions/format";
 function LeaderRow({ entry }: { entry: LeaderboardEntry }) {
   return <li className={`grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-line py-4 sm:grid-cols-[4rem_minmax(0,1fr)_8rem] sm:gap-4 ${entry.isCurrentUser ? "bg-coral-soft/35" : ""}`}>
     <span className="pl-1 text-sm font-semibold tabular text-muted sm:pl-0"><span className="sr-only">Rank </span>{entry.rank}</span>
-    <span className="flex min-w-0 items-center gap-3"><Avatar avatarPath={entry.avatarPath} className={entry.isCurrentUser ? "bg-coral text-surface" : ""} displayName={entry.displayName} size="sm" /><span className="min-w-0"><span className="flex items-center gap-2"><strong className="truncate text-sm text-ink">{entry.displayName}</strong>{entry.isCurrentUser && <span className="text-xs font-semibold text-coral-dark">You</span>}</span><span className="block truncate text-xs text-muted">@{entry.username}</span></span></span>
+    <span className="flex min-w-0 items-center gap-3"><Avatar className={entry.isCurrentUser ? "bg-coral text-surface" : ""} displayName={entry.displayName} size="sm" /><span className="min-w-0"><span className="flex items-center gap-2"><strong className="truncate text-sm text-ink">{entry.displayName}</strong>{entry.isCurrentUser && <span className="text-xs font-semibold text-coral-dark">You</span>}</span><span className="block truncate text-xs text-muted">@{entry.username}</span></span></span>
     <strong aria-label={`${formatDuration(entry.durationSeconds)} studied`} className="text-right text-base tabular text-ink sm:text-sm">{formatDuration(entry.durationSeconds)}</strong>
   </li>;
 }

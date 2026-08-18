@@ -52,6 +52,7 @@ function GoalRow({ goal, onSaved }: { goal: Goal; onSaved: (goal: Goal) => void 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [archiveState, archiveAction] = useActionState(goal.is_archived ? restoreGoalAction : archiveGoalAction, initialGoalActionState);
   const [deleteState, deleteAction] = useActionState(deleteGoalAction, initialGoalActionState);
+  useEffect(() => { if (archiveState.status === "success" && archiveState.goal) onSaved(archiveState.goal); }, [archiveState, onSaved]);
   return <div className="border-b border-line py-5">
     <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
       <div><h3 className="text-base font-semibold tracking-[-0.015em] text-ink">{goal.name}</h3>{goal.description && <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">{goal.description}</p>}<p className="mt-3 text-xs text-muted">Daily {formatMinutes(goal.daily_target_minutes)} · Weekly {formatMinutes(goal.weekly_target_minutes)}</p></div>
@@ -70,12 +71,12 @@ function GoalRow({ goal, onSaved }: { goal: Goal; onSaved: (goal: Goal) => void 
 export function GoalManager({ goals }: { goals: Goal[] }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
-  const [createdGoals, setCreatedGoals] = useState<Goal[]>([]);
+  const [changedGoals, setChangedGoals] = useState<Goal[]>([]);
   const saveLocally = useCallback((saved: Goal) => {
-    setCreatedGoals((current) => goals.some((goal) => goal.id === saved.id) ? current : [...current.filter((goal) => goal.id !== saved.id), saved]);
+    setChangedGoals((current) => [...current.filter((goal) => goal.id !== saved.id), saved]);
     router.refresh();
-  }, [goals, router]);
-  const visibleGoals = [...goals, ...createdGoals.filter((created) => !goals.some((goal) => goal.id === created.id))];
+  }, [router]);
+  const visibleGoals = [...goals.map((goal) => changedGoals.find((changed) => changed.id === goal.id) ?? goal), ...changedGoals.filter((changed) => !goals.some((goal) => goal.id === changed.id))];
   const active = visibleGoals.filter((goal) => !goal.is_archived);
   const archived = visibleGoals.filter((goal) => goal.is_archived);
   return <section aria-labelledby="goals-heading">

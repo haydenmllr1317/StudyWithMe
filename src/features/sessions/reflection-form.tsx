@@ -7,8 +7,9 @@ import { finishSessionAction, saveReflectionAction, type SessionActionState } fr
 import { Button } from "@/components/ui/button";
 import { prepareImage } from "@/lib/image-upload";
 import { createClient } from "@/lib/supabase/client";
+import type { GroupSummary } from "@/lib/groups";
 
-export function ReflectionForm({ sessionId, initialNotes = "", initialRating = null, initialShared = false, initialPhotoPath = null, initialPhotoUrl = null, finishBeforeSave = false, onSaved }: {
+export function ReflectionForm({ sessionId, initialNotes = "", initialRating = null, initialShared = false, initialPhotoPath = null, initialPhotoUrl = null, finishBeforeSave = false, circles = [], showAudience = false, onSaved }: {
   sessionId: string;
   initialNotes?: string;
   initialRating?: number | null;
@@ -16,6 +17,8 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
   initialPhotoPath?: string | null;
   initialPhotoUrl?: string | null;
   finishBeforeSave?: boolean;
+  circles?: GroupSummary[];
+  showAudience?: boolean;
   onSaved?: (session: NonNullable<SessionActionState["session"]>) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
@@ -27,6 +30,8 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<SessionActionState>({ status: "idle" });
   const [rating, setRating] = useState<number | null>(initialRating);
+  const [audience, setAudience] = useState<"only_me" | "circles" | "everyone">("only_me");
+  const [selectedCircles, setSelectedCircles] = useState<string[]>([]);
 
   const filePreview = useMemo(()=>file?URL.createObjectURL(file):null,[file]);
   useEffect(()=>()=>{if(filePreview)URL.revokeObjectURL(filePreview)},[filePreview]);
@@ -87,7 +92,7 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
     <fieldset><legend className="text-sm font-semibold text-ink">How did it feel? <span className="font-normal text-muted">(optional)</span></legend><input name="rating" type="hidden" value={rating??""}/><div className="mt-2 flex flex-wrap items-center gap-2">{[1,2,3,4,5].map((value)=><button aria-label={`Rate this session ${value} out of 5`} aria-pressed={rating===value} className={`grid size-11 place-items-center rounded-full border text-sm font-semibold ${rating===value?"border-ink bg-ink text-white":"border-line bg-white text-muted hover:border-muted"}`} key={value} onClick={()=>setRating(value)} type="button">{value}</button>)}{rating!==null&&<button className="min-h-11 px-2 text-xs text-muted underline underline-offset-4" onClick={()=>setRating(null)} type="button">Clear</button>}</div></fieldset>
     <label className="mt-5 block text-sm font-semibold text-ink">Reflection <span className="font-normal text-muted">(optional)</span><textarea className="field mt-2 min-h-28 resize-y" defaultValue={initialNotes} maxLength={5000} name="notes" placeholder="What clicked? What will you return to?" /></label>
     <div className="mt-5"><span className="text-sm font-semibold text-ink">Photo <span className="font-normal text-muted">(optional)</span></span>{preview && !removePhoto && <img alt="Reflection preview" className="mt-3 max-h-64 w-full max-w-lg rounded-field object-cover" src={preview}/>}<div className="mt-3 flex flex-wrap gap-4"><button className="min-h-11 text-sm font-semibold text-coral underline underline-offset-4" onClick={()=>input.current?.click()} type="button">{preview && !removePhoto ? "Change photo" : "Add photo"}</button>{preview && !removePhoto && <button className="min-h-11 text-sm text-muted underline underline-offset-4" onClick={()=>{setRemovePhoto(true);setFile(null)}} type="button">Remove photo</button>}</div><input accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" className="sr-only" onChange={(event)=>{const next=event.target.files?.[0]??null;setFile(next);setRemovePhoto(false)}} ref={input} type="file"/></div>
-    <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm text-ink"><input className="mt-1 size-4 accent-coral" defaultChecked={initialShared} name="shareNotes" type="checkbox"/><span><span className="font-semibold">Share reflection with Activity</span><span className="mt-0.5 block text-xs leading-5 text-muted">Off by default. Notes and photo stay private unless this is on.</span></span></label>
+    {showAudience ? <fieldset className="mt-6 border-t border-line pt-5"><legend className="text-sm font-semibold text-ink">Who can see this activity?</legend><div className="mt-3 grid gap-2 sm:grid-cols-3">{([['only_me','Only Me'],['circles','Specific Circles'],['everyone','Everyone']] as const).map(([value,label])=><label className={`flex min-h-11 cursor-pointer items-center rounded-field border px-3 text-sm font-semibold ${audience===value?'border-moss bg-moss-soft text-moss-dark':'border-line bg-white text-muted'}`} key={value}><input checked={audience===value} className="sr-only" name="activityAudience" onChange={()=>setAudience(value)} type="radio" value={value}/>{label}</label>)}</div>{audience==='circles'&&<div className="mt-4"><p className="text-xs leading-5 text-muted">Choose one or more Circles.</p>{circles.length?<div className="mt-2 grid gap-2 sm:grid-cols-2">{circles.map(circle=><label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-field border border-line bg-white px-3 text-sm text-ink" key={circle.id}><input checked={selectedCircles.includes(circle.id)} className="size-4 accent-moss" name="audienceGroupIds" onChange={(event)=>setSelectedCircles(current=>event.target.checked?[...current,circle.id]:current.filter(id=>id!==circle.id))} type="checkbox" value={circle.id}/><span>{circle.name}</span></label>)}</div>:<p className="mt-2 text-sm text-coral-dark">Join or create a Circle before sharing to one.</p>}</div>}</fieldset> : <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm text-ink"><input className="mt-1 size-4 accent-coral" defaultChecked={initialShared} name="shareNotes" type="checkbox"/><span><span className="font-semibold">Share reflection with Activity</span><span className="mt-0.5 block text-xs leading-5 text-muted">Off by default. Notes and photo stay private unless this is on.</span></span></label>}
     <div className="mt-6"><Button disabled={pending} type="submit">{pending ? "Finishing…" : finishBeforeSave ? "Finish Session" : "Save reflection"}</Button></div>
     {state.message && <p aria-live="polite" className={`mt-3 text-sm ${state.status==="error"?"text-coral-dark":"text-moss-dark"}`}>{state.message}</p>}
   </form>;
