@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useCallback, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { deleteCompletedSessionAction, type SessionActionState } from "@/app/session-actions";
 import { Button } from "@/components/ui/button";
 import { AnalyticsCharts } from "@/features/analytics/analytics-charts";
@@ -15,11 +17,19 @@ type Session = Tables<"study_sessions"> & { goalName: string; reflectionPhotoUrl
 type Goal = Pick<Tables<"study_goals">, "id" | "name" | "is_archived" | "daily_target_minutes" | "weekly_target_minutes">;
 const initial: SessionActionState = { status: "idle" };
 
-function SessionRow({ session, timezone }: { session: Session; timezone: string }) {
+function DeleteButton() {
+  const { pending } = useFormStatus();
+  return <Button disabled={pending} type="submit">{pending ? "Deleting…" : "Yes, delete"}</Button>;
+}
+
+function SessionRow({ session, timezone, onDeleted }: { session: Session; timezone: string; onDeleted: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [deleteState, deleteAction] = useActionState(deleteCompletedSessionAction, initial);
   const [current, setCurrent] = useState(session);
+  useEffect(() => {
+    if (deleteState.status === "success") onDeleted(current.id);
+  }, [current.id, deleteState.status, onDeleted]);
   const date = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: timezone });
 
   return <li className="border-b border-line py-5">
@@ -32,18 +42,25 @@ function SessionRow({ session, timezone }: { session: Session; timezone: string 
       <p className="text-sm text-muted">{current.notes || "No session note."}</p>
       <ReflectionForm initialNotes={current.notes ?? ""} initialPhotoPath={current.reflection_photo_path} initialPhotoUrl={current.reflectionPhotoUrl} initialRating={current.rating} initialShared={current.share_notes} onSaved={(updated)=>setCurrent({...current,...updated})} sessionId={current.id}/>
       <button className="mt-3 min-h-11 text-sm text-muted underline" onClick={() => setConfirm(true)} type="button">Delete session</button>
-      {confirm && <form action={deleteAction} className="mt-4 border-t border-line pt-4"><input name="sessionId" type="hidden" value={current.id} /><p className="text-sm text-coral-dark">Delete permanently? Today totals, streaks, and Activity will change.</p><div className="mt-3 flex flex-wrap gap-4"><Button type="submit">Yes, delete</Button><button className="min-h-11" onClick={() => setConfirm(false)} type="button">Cancel</button></div>{deleteState.message && <p aria-live="polite" className="mt-2 text-sm text-coral-dark">{deleteState.message}</p>}</form>}
+      {confirm && <form action={deleteAction} className="mt-4 border-t border-line pt-4"><input name="sessionId" type="hidden" value={current.id} /><p className="text-sm text-coral-dark">Delete permanently? Today totals, streaks, and Activity will change.</p><div className="mt-3 flex flex-wrap gap-4"><DeleteButton /><button className="min-h-11" onClick={() => setConfirm(false)} type="button">Cancel</button></div>{deleteState.status === "error" && deleteState.message && <p aria-live="polite" className="mt-2 text-sm text-coral-dark">{deleteState.message}</p>}</form>}
     </div>}
   </li>;
 }
 
 export function HistoryView({ sessions, goals, analytics, timezone, range, selectedGoal, page, pageCount, error }: { sessions: Session[]; goals: Goal[]; analytics: AnalyticsData | null; timezone: string; range: AnalyticsRange; selectedGoal: string; page: number; pageCount: number; error: boolean }) {
+  const router = useRouter();
+  const [deletedSessionIds, setDeletedSessionIds] = useState<Set<string>>(() => new Set());
+  const removeSession = useCallback((id: string) => {
+    setDeletedSessionIds((current) => new Set(current).add(id));
+    router.refresh();
+  }, [router]);
+  const visibleSessions = sessions.filter((session) => !deletedSessionIds.has(session.id));
   const query = (targetPage: number) => `?range=${range}&goal=${selectedGoal}&page=${targetPage}`;
   return <div className="space-y-12">
     {error && <div className="border-y border-line py-5" role="alert"><p className="font-semibold text-ink">Some history information is unavailable.</p><p className="mt-1 text-sm text-muted">Check your connection and refresh this page. Any study data already saved is safe.</p></div>}
     <TimeframeSelector hrefFor={(item) => `?range=${item}&goal=${selectedGoal}`} range={range}/>
     {analytics && <AnalyticsCharts data={analytics} subject="personal" />}
     <form className="grid gap-4 border-t border-line pt-8 sm:grid-cols-[1fr_auto] sm:items-end" method="get"><input name="range" type="hidden" value={range}/><label className="text-sm font-semibold">Filter sessions by goal<select className="field mt-2" defaultValue={selectedGoal} name="goal"><option value="all">All goals</option>{goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.name}{goal.is_archived ? " (archived)" : ""}</option>)}</select></label><Button type="submit">Apply filter</Button></form>
-    <section><h2 className="text-xl font-semibold text-ink">Sessions</h2>{sessions.length ? <ol className="mt-4 border-t border-line">{sessions.map((session) => <SessionRow key={session.id} session={session} timezone={timezone} />)}</ol> : <div className="mt-4 border-y border-line py-8"><p className="font-semibold">No sessions in this view.</p><p className="mt-2 text-sm text-muted">Adjust the filters or begin a session from Today.</p></div>}<nav aria-label="Session pages" className="mt-6 flex justify-between"><span>{page > 1 ? <Link href={query(page - 1)}>Previous</Link> : null}</span><span className="text-sm text-muted">Page {page} of {pageCount}</span><span>{page < pageCount ? <Link href={query(page + 1)}>Next page</Link> : null}</span></nav></section>
+    <section><h2 className="text-xl font-semibold text-ink">Sessions</h2>{visibleSessions.length ? <ol className="mt-4 border-t border-line">{visibleSessions.map((session) => <SessionRow key={session.id} onDeleted={removeSession} session={session} timezone={timezone} />)}</ol> : <div className="mt-4 border-y border-line py-8"><p className="font-semibold">No sessions in this view.</p><p className="mt-2 text-sm text-muted">Adjust the filters or begin a session from Today.</p></div>}<nav aria-label="Session pages" className="mt-6 flex justify-between"><span>{page > 1 ? <Link href={query(page - 1)}>Previous</Link> : null}</span><span className="text-sm text-muted">Page {page} of {pageCount}</span><span>{page < pageCount ? <Link href={query(page + 1)}>Next page</Link> : null}</span></nav></section>
   </div>;
 }

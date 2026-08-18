@@ -42,6 +42,7 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
       let nextPath = removePhoto ? null : photoPath;
       if (file) {
         const prepared = await prepareImage(file, { maxBytes: 25 * 1024 * 1024, maxDimension: 1600 });
+        if (prepared.size > 5 * 1024 * 1024) throw new Error("The prepared photo is still too large. Choose a simpler or smaller image.");
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) throw new Error("Log in again to save this reflection.");
         uploadedPath = `${userData.user.id}/${sessionId}/reflection-${crypto.randomUUID()}.webp`;

@@ -5,7 +5,16 @@ function isHeic(file: File) {
 }
 
 async function loadImage(file: File) {
-  const url = URL.createObjectURL(file);
+  let source: Blob = file;
+  if (isHeic(file)) {
+    try {
+      const { heicTo } = await import("heic-to/csp");
+      source = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+    } catch {
+      throw new Error("This iPhone photo could not be converted. Choose a different photo or try again.");
+    }
+  }
+  const url = URL.createObjectURL(source);
   const image = new Image();
   image.src = url;
   try {
@@ -13,7 +22,6 @@ async function loadImage(file: File) {
     return { image, url };
   } catch {
     URL.revokeObjectURL(url);
-    if (isHeic(file)) throw new Error("This iPhone photo format could not be read. In Photos, share or export it as JPEG, PNG, or WebP and try again.");
     throw new Error("This image could not be read. Choose a JPEG, PNG, or WebP photo.");
   }
 }

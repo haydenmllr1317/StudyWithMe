@@ -3,8 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { validateGoalForm, type GoalFieldErrors } from "@/lib/goals/validation";
+import type { Tables } from "@/types/database";
 
-export type GoalActionState = { status: "idle" | "success" | "error"; message?: string; fieldErrors?: GoalFieldErrors };
+export type GoalActionState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  fieldErrors?: GoalFieldErrors;
+  goal?: Tables<"study_goals">;
+};
 
 async function authenticatedContext() {
   const supabase = await createClient();
@@ -29,13 +35,13 @@ export async function saveGoalAction(_state: GoalActionState, formData: FormData
   const query = goalId
     ? supabase.from("study_goals").update(data).eq("id", goalId).eq("user_id", userId)
     : supabase.from("study_goals").insert({ ...data, user_id: userId });
-  const { data: saved, error } = await query.select("id").maybeSingle();
+  const { data: saved, error } = await query.select("*").maybeSingle();
   if (error || !saved) {
     console.error("Goal save failed", { code: error?.code });
     return { status: "error", message: "We couldn’t save that goal. Please try again." };
   }
   refreshGoals();
-  return { status: "success", message: goalId ? "Goal updated." : "Goal created." };
+  return { status: "success", message: goalId ? "Goal updated." : "Goal created.", goal: saved };
 }
 
 async function setArchived(formData: FormData, isArchived: boolean): Promise<GoalActionState> {

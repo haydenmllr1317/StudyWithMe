@@ -7,6 +7,7 @@ StudyWithMe is a mobile-first social study and time-tracking application for iPh
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Tailwind CSS 3
 - Supabase Auth and PostgreSQL via `@supabase/supabase-js` and `@supabase/ssr`
+- Client-side HEIC/HEIF conversion via pinned `heic-to` for iPhone photo uploads
 - Versioned Supabase CLI migrations
 - Vercel-compatible deployment
 - Standards-based installable PWA with a conservative custom service worker

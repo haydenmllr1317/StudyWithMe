@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { finalizeAvatarAction, removeAvatarAction } from "@/app/avatar-actions";
 import { Avatar } from "@/components/ui/avatar";
 import { prepareImage } from "@/lib/image-upload";
@@ -8,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export function AvatarUpload({ avatarPath: initialPath, displayName }: { avatarPath: string | null; displayName: string }) {
   const input = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const [avatarPath, setAvatarPath] = useState(initialPath);
   const [message, setMessage] = useState<string>();
   const [pending, setPending] = useState(false);
@@ -21,6 +23,7 @@ export function AvatarUpload({ avatarPath: initialPath, displayName }: { avatarP
       const supabase = createClient();
       try {
         const prepared = await prepareImage(file, { maxBytes: 20 * 1024 * 1024, maxDimension: 512, square: true });
+        if (prepared.size > 4 * 1024 * 1024) throw new Error("The prepared photo is still too large. Choose a simpler or smaller image.");
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) throw new Error("Log in again to change your photo.");
         uploadedPath = `${userData.user.id}/avatar-${crypto.randomUUID()}.webp`;
@@ -28,7 +31,10 @@ export function AvatarUpload({ avatarPath: initialPath, displayName }: { avatarP
         if (uploaded.error) throw new Error("The photo could not be uploaded. Check your connection and try again.");
         const result = await finalizeAvatarAction(uploadedPath);
         if (result.message) await supabase.storage.from("avatars").remove([uploadedPath]);
-        if (result.avatarPath) setAvatarPath(result.avatarPath);
+        if (result.avatarPath) {
+          setAvatarPath(result.avatarPath);
+          router.refresh();
+        }
         setMessage(result.message ?? result.success);
       } catch (error) {
         if (uploadedPath) await supabase.storage.from("avatars").remove([uploadedPath]);
@@ -45,7 +51,10 @@ export function AvatarUpload({ avatarPath: initialPath, displayName }: { avatarP
     setPending(true);
     void (async () => {
       const result = await removeAvatarAction();
-      if (!result.message) setAvatarPath(null);
+      if (!result.message) {
+        setAvatarPath(null);
+        router.refresh();
+      }
       setMessage(result.message ?? result.success);
       setPending(false);
     })();
