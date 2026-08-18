@@ -2,8 +2,8 @@ import type { Json } from "@/types/database";
 
 export const analyticsRanges = ["7d", "30d", "3m", "6m", "1y", "all"] as const;
 export type AnalyticsRange = (typeof analyticsRanges)[number];
-export type AnalyticsPoint = { date: string; seconds: number };
 export type AnalyticsGoal = { name: string; seconds: number };
+export type AnalyticsPoint = { date: string; seconds: number; goals: AnalyticsGoal[] };
 export type AnalyticsRanking = { displayName: string; username: string; avatarPath: string | null; durationSeconds: number; rank: number | null; isCurrentUser: boolean };
 export type AnalyticsMember = { userId: string; displayName: string; username: string; durationSeconds: number; isCurrentUser: boolean; daily: AnalyticsPoint[] };
 export type AnalyticsData = { range: AnalyticsRange; scope: "mine" | "everyone" | "circle"; timezone: string; totalSeconds: number; daily: AnalyticsPoint[]; goals: AnalyticsGoal[]; leaderboard: AnalyticsRanking[]; members: AnalyticsMember[] };
@@ -24,7 +24,11 @@ export function parseAnalyticsData(value: Json | null): AnalyticsData | null {
   const scope = raw.scope === "everyone" || raw.scope === "circle" ? raw.scope : "mine";
   const daily = Array.isArray(raw.daily) ? raw.daily.flatMap((entry) => {
     if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.date !== "string") return [];
-    return [{ date: entry.date, seconds: nonnegative(entry.seconds) }];
+    const pointGoals=Array.isArray(entry.goals)?entry.goals.flatMap((goal)=>{
+      if(!goal||Array.isArray(goal)||typeof goal!=="object"||typeof goal.name!=="string")return[];
+      return[{name:goal.name,seconds:nonnegative(goal.seconds)}];
+    }):[];
+    return [{ date: entry.date, seconds: nonnegative(entry.seconds), goals:pointGoals }];
   }) : [];
   const goals = Array.isArray(raw.goals) ? raw.goals.flatMap((entry) => {
     if (!entry || Array.isArray(entry) || typeof entry !== "object" || typeof entry.name !== "string") return [];
@@ -40,7 +44,11 @@ export function parseAnalyticsData(value: Json | null): AnalyticsData | null {
     if (typeof member.userId !== "string" || typeof member.username !== "string") return [];
     const memberDaily = Array.isArray(member.daily) ? member.daily.flatMap((point) => {
       if (!point || Array.isArray(point) || typeof point !== "object" || typeof point.date !== "string") return [];
-      return [{ date: point.date, seconds: nonnegative(point.seconds) }];
+      const pointGoals=Array.isArray(point.goals)?point.goals.flatMap((goal)=>{
+        if(!goal||Array.isArray(goal)||typeof goal!=="object"||typeof goal.name!=="string")return[];
+        return[{name:goal.name,seconds:nonnegative(goal.seconds)}];
+      }):[];
+      return [{ date: point.date, seconds: nonnegative(point.seconds), goals:pointGoals }];
     }) : [];
     return [{ userId: member.userId, displayName: typeof member.displayName === "string" ? member.displayName : member.username, username: member.username, durationSeconds: nonnegative(member.durationSeconds), isCurrentUser: member.isCurrentUser === true, daily: memberDaily }];
   }) : [];

@@ -351,7 +351,7 @@ export type Database = {
         Args: {
           p_activity_circle_id?: string
           p_duration_minutes: number
-          p_goal_id?: string
+          p_goal_id: string
           p_local_date: string
           p_local_time: string
           p_notes?: string

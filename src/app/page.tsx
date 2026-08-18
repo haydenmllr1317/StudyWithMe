@@ -28,7 +28,7 @@ export default async function TodayPage() {
   const allGoals = goalsResult.data ?? [];
   const activeGoals = allGoals.filter((goal) => !goal.is_archived);
   const activeRow = activeResult.data;
-  const activeSession = activeRow ? { ...activeRow, goalName: allGoals.find((goal) => goal.id === activeRow.goal_id)?.name ?? "Study session" } : null;
+  const activeSession = activeRow ? { ...activeRow, goalName: allGoals.find((goal) => goal.id === activeRow.goal_id)?.name ?? "Legacy session" } : null;
   const secondsByGoal = new Map((summaryResult.data ?? []).map((row) => [row.goal_id, Number(row.duration_seconds)]));
   const completedTodaySeconds = [...secondsByGoal.values()].reduce((sum, value) => sum + value, 0);
   const targetedGoals = activeGoals.filter((goal) => goal.daily_target_minutes !== null);
@@ -44,7 +44,7 @@ export default async function TodayPage() {
       <div className="flex min-w-0 items-end justify-between gap-4 border-b border-line pb-4"><div className="min-w-0"><p className="truncate text-sm text-muted">{date}</p><h1 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-3xl" id="today-heading">Today</h1></div><div className="shrink-0 text-right"><p className="measure-label">Completed</p><p className="mt-1 text-sm font-semibold tabular text-ink">{formatMinutes(Math.floor(completedTodaySeconds / 60))}</p></div></div>
       {!activeSession && <div className="grid grid-cols-2 border-b border-line"><div className="border-r border-line py-5 pr-5"><p className="measure-label">Daily target</p><p className="mt-2 text-2xl font-semibold tracking-[-0.03em] tabular text-ink">{totalDailyTarget ? formatMinutes(totalDailyTarget) : "Not set"}</p></div><div className="py-5 pl-5"><p className="measure-label">Active goals</p><p className="mt-2 text-2xl font-semibold tracking-[-0.03em] tabular text-ink">{activeGoals.length}</p></div></div>}
       <FocusLauncher activeSession={activeSession} circles={parseGroups(groupsResult.data)} goals={activeGoals.map(({ id, name }) => ({ id, name }))} />
-      {!activeSession&&<ManualSessionForm circles={parseGroups(groupsResult.data)} defaultDate={localDate} defaultTime={localTime} goals={allGoals.map(({id,name})=>({id,name}))}/>}
+      {!activeSession&&activeGoals.length>0&&<ManualSessionForm circles={parseGroups(groupsResult.data)} defaultDate={localDate} defaultTime={localTime} goals={activeGoals.map(({id,name})=>({id,name}))}/>}
       {coreDataUnavailable && <div className="mt-5 border-y border-line py-4" role="alert"><p className="text-sm font-semibold text-ink">Today’s data may be incomplete.</p><p className="mt-1 text-sm text-muted">Check your connection and refresh before starting or changing a session.</p></div>}
     </section>
 
