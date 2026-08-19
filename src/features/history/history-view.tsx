@@ -10,6 +10,7 @@ import { AnalyticsCharts } from "@/features/analytics/analytics-charts";
 import { TimeframeSelector } from "@/features/analytics/timeframe-selector";
 import { ReflectionForm } from "@/features/sessions/reflection-form";
 import type { AnalyticsData, AnalyticsRange } from "@/lib/analytics";
+import type { GroupSummary } from "@/lib/groups";
 import { formatDuration } from "@/lib/sessions/format";
 import type { Tables } from "@/types/database";
 
@@ -22,7 +23,7 @@ function DeleteButton() {
   return <Button disabled={pending} type="submit">{pending ? "Deleting…" : "Yes, delete"}</Button>;
 }
 
-function SessionRow({ session, timezone, onDeleted }: { session: Session; timezone: string; onDeleted: (id: string) => void }) {
+function SessionRow({ session, circles, timezone, onDeleted }: { session: Session; circles: GroupSummary[]; timezone: string; onDeleted: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [deleteState, deleteAction] = useActionState(deleteCompletedSessionAction, initial);
@@ -40,14 +41,14 @@ function SessionRow({ session, timezone, onDeleted }: { session: Session; timezo
     </button>
     {open && <div className="mt-5 border-t border-line pt-5 sm:ml-[13rem]">
       <p className="text-sm text-muted">{current.notes || "No session note."}</p>
-      <ReflectionForm initialNotes={current.notes ?? ""} initialPhotoPath={current.reflection_photo_path} initialPhotoUrl={current.reflectionPhotoUrl} initialRating={current.rating} initialShared={current.share_notes} onSaved={(updated)=>setCurrent({...current,...updated})} sessionId={current.id}/>
+      <ReflectionForm circles={circles} initialActivityCircleId={current.activity_circle_id} initialNotes={current.notes ?? ""} initialPhotoPath={current.reflection_photo_path} initialPhotoUrl={current.reflectionPhotoUrl} initialRating={current.rating} onSaved={(updated)=>setCurrent({...current,...updated})} sessionId={current.id} showAudience/>
       <button className="mt-3 min-h-11 text-sm text-muted underline" onClick={() => setConfirm(true)} type="button">Delete session</button>
       {confirm && <form action={deleteAction} className="mt-4 border-t border-line pt-4"><input name="sessionId" type="hidden" value={current.id} /><p className="text-sm text-coral-dark">Delete permanently? Today totals, streaks, and Activity will change.</p><div className="mt-3 flex flex-wrap gap-4"><DeleteButton /><button className="min-h-11" onClick={() => setConfirm(false)} type="button">Cancel</button></div>{deleteState.status === "error" && deleteState.message && <p aria-live="polite" className="mt-2 text-sm text-coral-dark">{deleteState.message}</p>}</form>}
     </div>}
   </li>;
 }
 
-export function HistoryView({ sessions, goals, analytics, timezone, range, selectedGoal, page, pageCount, error }: { sessions: Session[]; goals: Goal[]; analytics: AnalyticsData | null; timezone: string; range: AnalyticsRange; selectedGoal: string; page: number; pageCount: number; error: boolean }) {
+export function HistoryView({ sessions, goals, circles, analytics, timezone, range, selectedGoal, page, pageCount, error }: { sessions: Session[]; goals: Goal[]; circles: GroupSummary[]; analytics: AnalyticsData | null; timezone: string; range: AnalyticsRange; selectedGoal: string; page: number; pageCount: number; error: boolean }) {
   const router = useRouter();
   const [deletedSessionIds, setDeletedSessionIds] = useState<Set<string>>(() => new Set());
   const removeSession = useCallback((id: string) => {
@@ -61,6 +62,6 @@ export function HistoryView({ sessions, goals, analytics, timezone, range, selec
     <TimeframeSelector hrefFor={(item) => `?range=${item}&goal=${selectedGoal}`} range={range}/>
     {analytics && <AnalyticsCharts data={analytics} subject="personal" />}
     <form className="grid gap-4 border-t border-line pt-8 sm:grid-cols-[1fr_auto] sm:items-end" method="get"><input name="range" type="hidden" value={range}/><label className="text-sm font-semibold">Filter sessions by goal<select className="field mt-2" defaultValue={selectedGoal} name="goal"><option value="all">All goals</option>{goals.map((goal) => <option key={goal.id} value={goal.id}>{goal.name}{goal.is_archived ? " (archived)" : ""}</option>)}</select></label><Button type="submit">Apply filter</Button></form>
-    <section><h2 className="text-xl font-semibold text-ink">Sessions</h2>{visibleSessions.length ? <ol className="mt-4 border-t border-line">{visibleSessions.map((session) => <SessionRow key={session.id} onDeleted={removeSession} session={session} timezone={timezone} />)}</ol> : <div className="mt-4 border-y border-line py-8"><p className="font-semibold">No sessions in this view.</p><p className="mt-2 text-sm text-muted">Adjust the filters or begin a session from Today.</p></div>}<nav aria-label="Session pages" className="mt-6 flex justify-between"><span>{page > 1 ? <Link href={query(page - 1)}>Previous</Link> : null}</span><span className="text-sm text-muted">Page {page} of {pageCount}</span><span>{page < pageCount ? <Link href={query(page + 1)}>Next page</Link> : null}</span></nav></section>
+    <section><h2 className="text-xl font-semibold text-ink">Sessions</h2>{visibleSessions.length ? <ol className="mt-4 border-t border-line">{visibleSessions.map((session) => <SessionRow circles={circles} key={session.id} onDeleted={removeSession} session={session} timezone={timezone} />)}</ol> : <div className="mt-4 border-y border-line py-8"><p className="font-semibold">No sessions in this view.</p><p className="mt-2 text-sm text-muted">Adjust the filters or begin a session from Today.</p></div>}<nav aria-label="Session pages" className="mt-6 flex justify-between"><span>{page > 1 ? <Link href={query(page - 1)}>Previous</Link> : null}</span><span className="text-sm text-muted">Page {page} of {pageCount}</span><span>{page < pageCount ? <Link href={query(page + 1)}>Next page</Link> : null}</span></nav></section>
   </div>;
 }

@@ -33,6 +33,18 @@ Run this checklist against a fresh deployment at iPhone width (approximately 390
 - [ ] Test just before/after local midnight, Monday, and month end; change the profile timezone in Supabase only in a test environment and repeat.
 - [ ] Confirm the chart has an accessible label and accompanying text/totals.
 
+## Activity destination (release blocking)
+
+- [ ] Create Circle A and Circle B. Join both as User A; join both as User B.
+- [ ] As User A, finish a session directly into Circle A. Refresh and verify it appears in My Activity and Circle A, but not Circle B.
+- [ ] Finish a Personal session. In History, expand it, change Activity destination to Circle A, save, and verify its duration, goal, rating, reflection, photo, and timestamps are unchanged.
+- [ ] Move that session Circle A → Circle B. Without a hard refresh or PWA restart, navigate to both feeds and verify it disappears from A and appears once in B with its existing loves.
+- [ ] Move it Circle B → Personal. Verify it remains in History/My Activity and disappears from both Circle feeds.
+- [ ] Submit a modified request containing a Circle ID User A does not belong to. Verify the mutation returns the membership error and does not silently select Personal.
+- [ ] Assign a session to Circle A, then remove User A or leave as User A. Verify the session remains in User A’s History but no longer appears to Circle A members; old lovers cannot load its photo or liker list.
+- [ ] Assign a session to a disposable Circle, then delete the Circle. Verify the session and reflection survive and its destination reads Personal in History.
+- [ ] Repeat completion and History reassignment at approximately 390×844 using keyboard and touch; verify the select and save controls remain fully visible and labeled.
+
 ## Leaderboards, groups, and invites
 
 - [ ] Check Today/Week/Month/All-time global rankings and current-user context, including an account with no study time.

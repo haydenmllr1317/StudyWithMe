@@ -349,7 +349,7 @@ export type Database = {
       }
       create_manual_study_session: {
         Args: {
-          p_activity_circle_ids: string[]
+          p_activity_circle_id?: string | null
           p_duration_minutes: number
           p_goal_id: string
           p_local_date: string
@@ -520,7 +520,7 @@ export type Database = {
           }
         | {
             Args: {
-              p_activity_circle_ids: string[]
+              p_activity_circle_id?: string | null
               p_notes: string
               p_rating: number
               p_reflection_photo_path: string
