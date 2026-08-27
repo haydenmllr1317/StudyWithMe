@@ -343,6 +343,13 @@ export type Database = {
           goal_id: string
         }[]
       }
+      get_weekly_study_summary: {
+        Args: never
+        Returns: {
+          duration_seconds: number
+          goal_id: string
+        }[]
+      }
       get_visible_reflection_photo: {
         Args: { p_session_id: string }
         Returns: string
