@@ -2,6 +2,8 @@ export const usernamePattern = /^[a-z0-9][a-z0-9_]{2,29}$/;
 
 export type AuthField = "displayName" | "email" | "password" | "username";
 
+export type ProfileFieldErrors = Partial<Record<"displayName" | "username", string>>;
+
 export type AuthActionState = {
   message?: string;
   fieldErrors?: Partial<Record<AuthField, string>>;
@@ -51,6 +53,15 @@ export function validateSignup(formData: FormData): AuthActionState["fieldErrors
   if (password.length < 8) errors.password = "Use at least 8 characters.";
 
   return errors;
+}
+
+export function validateProfileNames(formData: FormData) {
+  const errors: ProfileFieldErrors = {};
+  const username = normalizeUsername(formData.get("username"));
+  const displayName = readText(formData.get("displayName"));
+  if (!usernamePattern.test(username)) errors.username = "Use 3–30 lowercase letters, numbers, or underscores; start with a letter or number.";
+  if (!displayName || displayName.length > 80) errors.displayName = "Enter a display name between 1 and 80 characters.";
+  return Object.keys(errors).length ? { errors } : { data: { display_name: displayName, username } };
 }
 
 export function hasFieldErrors(errors: AuthActionState["fieldErrors"]) {

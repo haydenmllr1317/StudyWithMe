@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { HistoryView } from "@/features/history/history-view";
 import { parseAnalyticsData, parseAnalyticsRange } from "@/lib/analytics";
@@ -27,5 +26,5 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const unavailable = Boolean(profileError || goalsError || statsError || error || groupsResult.error);
   for (const failure of [profileError, goalsError, statsError, error, groupsResult.error]) if (failure) console.error("History lookup failed",{code:failure.code});
   const names=new Map((goals??[]).map(g=>[g.id,g.name]));
-  return <AppShell><div className="space-y-9"><PageHeading title="History"/><HistoryView analytics={parseAnalyticsData(stats)} circles={parseGroups(groupsResult.data)} error={unavailable} goals={goals??[]} page={page} pageCount={Math.max(1,Math.ceil((count??0)/PAGE_SIZE))} range={range} selectedGoal={goal} sessions={(sessions??[]).map(s=>({...s,goalName:s.goal_id?names.get(s.goal_id)??"Archived goal":"Legacy session",reflectionPhotoUrl:s.reflection_photo_path?`/activity/photo/${s.id}`:null}))} timezone={timezone}/></div></AppShell>;
+  return <div className="space-y-9"><PageHeading title="History"/><HistoryView analytics={parseAnalyticsData(stats)} circles={parseGroups(groupsResult.data)} error={unavailable} goals={goals??[]} page={page} pageCount={Math.max(1,Math.ceil((count??0)/PAGE_SIZE))} range={range} selectedGoal={goal} sessions={(sessions??[]).map(s=>({...s,goalName:s.goal_id?names.get(s.goal_id)??"Archived goal":"Legacy session",reflectionPhotoUrl:s.reflection_photo_path?`/activity/photo/${s.id}`:null}))} timezone={timezone}/></div>;
 }

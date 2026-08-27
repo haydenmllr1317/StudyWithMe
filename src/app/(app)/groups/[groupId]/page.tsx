@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { Avatar } from "@/components/ui/avatar";
 import { CircleAnalyticsCharts } from "@/features/analytics/circle-analytics-charts";
@@ -32,7 +31,7 @@ export default async function CircleDetailPage({ params, searchParams }: {
   if (detailResult.error?.code === "42501") notFound();
   if (detailResult.error) {
     console.error("Circle detail lookup failed", { code: detailResult.error.code });
-    return <AppShell><div className="space-y-8"><PageHeading title="Circle unavailable" /><div className="border-y border-line py-7" role="alert"><p className="text-sm text-muted">Refresh to try again, or return to your Circles.</p><Link className="mt-4 inline-block text-sm font-semibold text-coral underline underline-offset-4" href="/leaderboard">Return to Circle</Link></div></div></AppShell>;
+    return <div className="space-y-8"><PageHeading title="Circle unavailable" /><div className="border-y border-line py-7" role="alert"><p className="text-sm text-muted">Refresh to try again, or return to your Circles.</p><Link className="mt-4 inline-block text-sm font-semibold text-coral underline underline-offset-4" href="/leaderboard">Return to Circle</Link></div></div>;
   }
   const circle = parseGroup(detailResult.data);
   if (!circle) notFound();
@@ -41,7 +40,7 @@ export default async function CircleDetailPage({ params, searchParams }: {
   const analyticsUnavailable = Boolean(analyticsResult.error || !analytics);
   const inviteUrl = circle.inviteToken ? `${getSiteUrl()}/join/${circle.inviteToken}` : "";
 
-  return <AppShell><div className="space-y-10">
+  return <div className="space-y-10">
     <PageHeading aside={<CircleSelector circles={circles} range={range} selectedId={id} />} title="Leaderboard" />
     <div className="flex flex-wrap items-baseline justify-between gap-3"><h2 className="text-2xl font-semibold tracking-[-0.03em] text-ink">{circle.name}</h2><p className="text-xs text-muted">{circle.memberCount} {circle.memberCount === 1 ? "learner" : "learners"} · {circle.role === "owner" ? "Owner" : "Member"}</p></div>
     <section>
@@ -53,5 +52,5 @@ export default async function CircleDetailPage({ params, searchParams }: {
       <div><h2 className="text-xl font-semibold text-ink">Members</h2><ul className="mt-4 border-t border-line">{circle.members.map((member) => <li className="flex items-center justify-between gap-4 border-b border-line py-3" key={member.username}><span className="flex min-w-0 items-center gap-3"><Avatar avatarPath={member.avatarPath} displayName={member.displayName} size="sm"/><span className="min-w-0"><strong className="block truncate text-sm text-ink">{member.displayName}</strong><span className="block truncate text-xs text-muted">@{member.username}</span></span></span><span className="text-xs font-semibold text-muted">{member.role === "owner" ? "Owner" : "Member"}</span></li>)}</ul></div>
       <aside className="lg:border-l lg:border-line lg:pl-8"><h2 className="text-xl font-semibold text-ink">{circle.role === "owner" ? "Circle controls" : "Membership"}</h2><div className="mt-5">{circle.role === "owner" ? <OwnerGroupControls groupId={id} inviteUrl={inviteUrl} members={circle.members} name={circle.name} /> : <LeaveGroupForm groupId={id} />}</div></aside>
     </section>
-  </div></AppShell>;
+  </div>;
 }

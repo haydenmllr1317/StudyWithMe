@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { FocusLauncher } from "@/features/today/focus-launcher";
 import { GoalProgressSection } from "@/features/today/goal-progress-section";
 import { ManualSessionForm } from "@/features/sessions/manual-session-form";
@@ -41,7 +40,7 @@ export default async function TodayPage() {
   const part=(type:Intl.DateTimeFormatPartTypes)=>localParts.find(item=>item.type===type)?.value??"";
   const localDate=`${part("year")}-${part("month")}-${part("day")}`; const localTime=`${part("hour")}:${part("minute")}`;
 
-  return <AppShell><div className="space-y-12 sm:space-y-16">
+  return <div className="space-y-12 sm:space-y-16">
     <section aria-labelledby="today-heading">
       <div className="flex min-w-0 items-end justify-between gap-4 border-b border-line pb-4"><div className="min-w-0"><p className="truncate text-sm text-muted">{date}</p><h1 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-3xl" id="today-heading">Today</h1></div><div className="shrink-0 text-right"><p className="measure-label">Completed</p><p className="mt-1 text-sm font-semibold tabular text-ink">{formatMinutes(Math.floor(completedTodaySeconds / 60))}</p></div></div>
       {!activeSession && <div className="grid grid-cols-2 border-b border-line"><div className="border-r border-line py-5 pr-5"><p className="measure-label">Daily target</p><p className="mt-2 text-2xl font-semibold tracking-[-0.03em] tabular text-ink">{totalDailyTarget ? formatMinutes(totalDailyTarget) : "Not set"}</p></div><div className="py-5 pl-5"><p className="measure-label">Active goals</p><p className="mt-2 text-2xl font-semibold tracking-[-0.03em] tabular text-ink">{activeGoals.length}</p></div></div>}
@@ -52,5 +51,5 @@ export default async function TodayPage() {
 
     {!activeSession && <GoalProgressSection goals={activeGoals.map((goal) => ({ id: goal.id, name: goal.name, targetMinutes: goal.daily_target_minutes, trackedSeconds: secondsByGoal.get(goal.id) ?? 0 }))} period="daily" title="Today by goal" />}
     {!activeSession && <GoalProgressSection goals={activeGoals.map((goal) => ({ id: goal.id, name: goal.name, targetMinutes: goal.weekly_target_minutes, trackedSeconds: weeklySecondsByGoal.get(goal.id) ?? 0 }))} period="weekly" title="This Week by goal" />}
-  </div></AppShell>;
+  </div>;
 }

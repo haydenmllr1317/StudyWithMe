@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { GroupsPanel } from "@/features/groups/groups-panel";
 import { parseGroups } from "@/lib/groups";
@@ -15,8 +14,8 @@ export default async function LeaderboardPage() {
   const circles = parseGroups(groupsResult.data);
   if (circles.length) redirect(`/groups/${circles[0].id}`);
 
-  return <AppShell><div className="space-y-10">
+  return <div className="space-y-10">
     <PageHeading title="Circles" />
     {groupsResult.error ? <div className="border-y border-line py-8" role="alert"><h2 className="font-semibold text-ink">Your Circles are unavailable.</h2><p className="mt-2 text-sm text-muted">Refresh to try again.</p></div> : <><div className="border-y border-line py-8"><h2 className="text-xl font-semibold text-ink">Your leaderboard starts with an invitation.</h2><p className="mt-2 max-w-xl text-sm leading-6 text-muted">Join a Circle through an invite link, or create one and invite the people you want to study with. There is no global community leaderboard.</p></div><GroupsPanel groups={[]} /></>}
-  </div></AppShell>;
+  </div>;
 }

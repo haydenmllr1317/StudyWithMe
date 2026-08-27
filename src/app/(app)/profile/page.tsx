@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { ProfileView } from "@/features/profile/profile-view";
 import { createClient } from "@/lib/supabase/server";
@@ -23,5 +22,5 @@ export default async function ProfilePage() {
   if (statsError) console.error("Profile statistics lookup failed", { code: statsError.code });
   const email = typeof claimsData?.claims?.email === "string" ? claimsData.claims.email : "Email unavailable";
 
-  return <AppShell><div className="space-y-9"><PageHeading title="Profile" />{(profileError || goalsError || statsError) && <div className="border-y border-line py-5" role="alert"><p className="font-semibold text-ink">Some profile information is unavailable.</p><p className="mt-1 text-sm text-muted">Check your connection and refresh before changing your goals.</p></div>}<ProfileView email={email} goals={goals ?? []} profile={profile} stats={stats} /></div></AppShell>;
+  return <div className="space-y-9"><PageHeading title="Profile" />{(profileError || goalsError || statsError) && <div className="border-y border-line py-5" role="alert"><p className="font-semibold text-ink">Some profile information is unavailable.</p><p className="mt-1 text-sm text-muted">Check your connection and refresh before changing your goals.</p></div>}<ProfileView email={email} goals={goals ?? []} profile={profile} stats={stats} /></div>;
 }

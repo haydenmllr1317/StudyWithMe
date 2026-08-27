@@ -1,6 +1,7 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { GoalManager } from "@/features/goals/goal-manager";
 import { Avatar } from "@/components/ui/avatar";
+import { ProfileNameForm } from "@/features/profile/profile-name-form";
 import { formatDuration } from "@/lib/sessions/format";
 import type { Json, Tables } from "@/types/database";
 
@@ -33,6 +34,7 @@ export function ProfileView({ email, goals, profile, stats }: {
           {profile ? <>
             <p className="mt-1 truncate text-sm font-medium text-ink">@{profile.username}</p>
             <p className="mt-1 truncate text-xs text-muted">{email} · joined {joined}</p>
+            <ProfileNameForm displayName={profile.display_name} username={profile.username} />
           </> : <p className="mt-2 text-sm leading-6 text-coral-dark">Your account is active, but its profile record is missing. Refresh once, then contact the project administrator if this continues.</p>}
         </div>
       </div>
