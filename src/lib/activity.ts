@@ -37,6 +37,11 @@ export function activityScopeAllowed(scope: ActivityScope, circles: GroupSummary
   return !scope.startsWith("circle:") || circles.some((circle) => circle.id === scope.slice(7));
 }
 
+export function filterActivityCirclesForViewer(circles: ActivityItem["circles"], memberships: Pick<GroupSummary,"id">[]) {
+  const membershipIds=new Set(memberships.map((membership)=>membership.id));
+  return circles.filter((circle)=>membershipIds.has(circle.id));
+}
+
 export function parseActivityFeed(value: Json | null): ActivityFeed | null {
   if (!value || Array.isArray(value) || typeof value !== "object") return null;
   const record = value as Record<string, Json | undefined>;

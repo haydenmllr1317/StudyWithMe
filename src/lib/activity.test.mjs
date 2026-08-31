@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activityScopeAllowed, parseActivityFeed, parseActivityScope } from "./activity.ts";
+import { activityScopeAllowed, filterActivityCirclesForViewer, parseActivityFeed, parseActivityScope } from "./activity.ts";
 import { parseNotifications } from "./notifications.ts";
 
 const circleId = "123e4567-e89b-42d3-a456-426614174000";
@@ -11,6 +11,14 @@ test("activity scopes accept only safe built-ins and circle UUIDs", () => {
   assert.equal(parseActivityScope("circle:not-a-uuid"), "all_circles");
   assert.equal(activityScopeAllowed(`circle:${circleId}`, [{ id: circleId, name: "Friends", role: "member", memberCount: 2 }]), true);
   assert.equal(activityScopeAllowed(`circle:${circleId}`, []), false);
+});
+
+test("activity Circle labels are limited to the viewer's memberships", () => {
+  const otherCircleId="223e4567-e89b-42d3-a456-426614174000";
+  const labels=[{id:circleId,name:"Circle A"},{id:otherCircleId,name:"Circle B"}];
+  assert.deepEqual(filterActivityCirclesForViewer(labels,[{id:circleId}]),[{id:circleId,name:"Circle A"}]);
+  assert.deepEqual(filterActivityCirclesForViewer(labels,[{id:circleId},{id:otherCircleId}]),labels);
+  assert.deepEqual(filterActivityCirclesForViewer(labels,[]),[]);
 });
 
 test("notification parser keeps stable actor and session identities", () => {

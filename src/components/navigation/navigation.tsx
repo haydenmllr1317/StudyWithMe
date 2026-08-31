@@ -21,7 +21,7 @@ export function Navigation({ unreadNotificationCount = 0 }: { unreadNotification
         <Link className="text-sm font-semibold tracking-[-0.035em] text-ink" href="/today">
           StudyWithMe<span className="text-coral">.</span>
         </Link>
-        <div className="flex h-full items-center gap-2"><nav aria-label="Primary" className="hidden h-full items-center gap-6 md:flex lg:gap-8">{items.map((item) => {
+        <div className="flex h-full items-center gap-4 lg:gap-5"><nav aria-label="Primary" className="hidden h-full items-center gap-6 md:flex lg:gap-8">{items.map((item) => {
           const active = pathname === item.href || (item.href === "/leaderboard" && pathname.startsWith("/groups/"));
           return <Link aria-current={active ? "page" : undefined} className={`relative flex h-full items-center text-sm transition-colors ${active ? "font-semibold text-ink" : "font-medium text-muted hover:text-ink"}`} href={item.href} key={item.href}>{item.label}{active && <span className="absolute bottom-[0.9rem] left-1/2 size-1 -translate-x-1/2 rounded-full bg-coral" />}</Link>;
         })}</nav><NotificationBell initialUnreadCount={unreadNotificationCount}/></div>

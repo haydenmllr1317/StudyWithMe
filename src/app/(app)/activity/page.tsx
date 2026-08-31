@@ -37,6 +37,6 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
   return <div className="space-y-9">
     <PageHeading aside={<ActivityScopeSelect circles={circles} value={scope} />} title="Activity" />
-    {(groupsResult.error || feedResult.error || !feed) ? <div className="border-y border-line py-8" role="alert"><h2 className="font-semibold text-ink">Activity is unavailable.</h2><p className="mt-2 text-sm text-muted">Refresh to try again. Your private notes remain private.</p></div> : <ActivityFeed data={feed} scope={scope} />}
+    {(groupsResult.error || feedResult.error || !feed) ? <div className="border-y border-line py-8" role="alert"><h2 className="font-semibold text-ink">Activity is unavailable.</h2><p className="mt-2 text-sm text-muted">Refresh to try again. Your private notes remain private.</p></div> : <ActivityFeed circles={circles} data={feed} scope={scope} />}
   </div>;
 }
