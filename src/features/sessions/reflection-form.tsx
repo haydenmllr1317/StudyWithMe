@@ -5,21 +5,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { finishSessionAction, saveReflectionAction, type SessionActionState } from "@/app/session-actions";
 import { Button } from "@/components/ui/button";
+import { ActivityDestinations } from "@/features/activity/activity-destinations";
 import { prepareImage } from "@/lib/image-upload";
 import { createClient } from "@/lib/supabase/client";
 import type { GroupSummary } from "@/lib/groups";
 
-export function ReflectionForm({ sessionId, initialNotes = "", initialRating = null, initialPhotoPath = null, initialPhotoUrl = null, initialActivityCircleId = null, finishBeforeSave = false, circles = [], showAudience = false, onSaved }: {
+export function ReflectionForm({ sessionId, initialNotes = "", initialRating = null, initialPhotoPath = null, initialPhotoUrl = null, initialActivityCircleIds = [], finishBeforeSave = false, circles = [], showAudience = false, onSaved }: {
   sessionId: string;
   initialNotes?: string;
   initialRating?: number | null;
-  initialActivityCircleId?: string | null;
+  initialActivityCircleIds?: string[];
   initialPhotoPath?: string | null;
   initialPhotoUrl?: string | null;
   finishBeforeSave?: boolean;
   circles?: GroupSummary[];
   showAudience?: boolean;
-  onSaved?: (session: NonNullable<SessionActionState["session"]>) => void;
+  onSaved?: (session: NonNullable<SessionActionState["session"]>, circleIds: string[]) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -30,7 +31,6 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<SessionActionState>({ status: "idle" });
   const [rating, setRating] = useState<number | null>(initialRating);
-  const [activityCircleId, setActivityCircleId] = useState(initialActivityCircleId ?? "");
 
   const filePreview = useMemo(()=>file?URL.createObjectURL(file):null,[file]);
   useEffect(()=>()=>{if(filePreview)URL.revokeObjectURL(filePreview)},[filePreview]);
@@ -75,7 +75,7 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
       setFile(null);
       setRemovePhoto(false);
       setState(result);
-      if (result.session) onSaved?.(result.session);
+      if (result.session) onSaved?.(result.session, formData.getAll("activityCircleIds").map(String));
       router.refresh();
     } catch (error) {
       if (uploadedPath) await supabase.storage.from("reflection-photos").remove([uploadedPath]);
@@ -92,7 +92,7 @@ export function ReflectionForm({ sessionId, initialNotes = "", initialRating = n
     <fieldset><legend className="text-sm font-semibold text-ink">How did it feel? <span className="font-normal text-muted">(optional)</span></legend><input name="rating" type="hidden" value={rating??""}/><div className="mt-2 flex flex-wrap items-center gap-2">{[1,2,3,4,5].map((value)=><button aria-label={`Rate this session ${value} out of 5`} aria-pressed={rating===value} className={`grid size-11 place-items-center rounded-full border text-sm font-semibold ${rating===value?"border-ink bg-ink text-white":"border-line bg-white text-muted hover:border-muted"}`} key={value} onClick={()=>setRating(value)} type="button">{value}</button>)}{rating!==null&&<button className="min-h-11 px-2 text-xs text-muted underline underline-offset-4" onClick={()=>setRating(null)} type="button">Clear</button>}</div></fieldset>
     <label className="mt-5 block text-sm font-semibold text-ink">Reflection <span className="font-normal text-muted">(optional)</span><textarea className="field mt-2 min-h-28 resize-y pb-3 pt-4 leading-6 sm:py-0" defaultValue={initialNotes} maxLength={5000} name="notes" placeholder="What clicked? What will you return to?" /></label>
     <div className="mt-5"><span className="text-sm font-semibold text-ink">Photo <span className="font-normal text-muted">(optional)</span></span>{preview && !removePhoto && <img alt="Reflection preview" className="mt-3 max-h-64 w-full max-w-lg rounded-field object-cover" src={preview}/>}<div className="mt-3 flex flex-wrap gap-4"><button className="min-h-11 text-sm font-semibold text-coral underline underline-offset-4" onClick={()=>input.current?.click()} type="button">{preview && !removePhoto ? "Change photo" : "Add photo"}</button>{preview && !removePhoto && <button className="min-h-11 text-sm text-muted underline underline-offset-4" onClick={()=>{setRemovePhoto(true);setFile(null)}} type="button">Remove photo</button>}</div><input accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" className="sr-only" onChange={(event)=>{const next=event.target.files?.[0]??null;setFile(next);setRemovePhoto(false)}} ref={input} type="file"/></div>
-    {showAudience ? <label className="mt-6 block border-t border-line pt-5 text-sm font-semibold text-ink">Activity destination<select className="field mt-2" name="activityCircleId" onChange={(event)=>setActivityCircleId(event.target.value)} value={activityCircleId}><option value="">Personal</option>{circles.map((circle)=><option key={circle.id} value={circle.id}>{circle.name}</option>)}</select><span className="mt-2 block text-xs font-normal leading-5 text-muted">Personal keeps this session in your History and My Activity. Choosing a Circle also places it in that Circle’s Activity.</span></label> : null}
+    {showAudience ? <ActivityDestinations circles={circles} selectedIds={initialActivityCircleIds} /> : null}
     <div className="mt-6"><Button disabled={pending} type="submit">{pending ? "Finishing…" : finishBeforeSave ? "Finish Session" : "Save reflection"}</Button></div>
     {state.message && <p aria-live="polite" className={`mt-3 text-sm ${state.status==="error"?"text-coral-dark":"text-moss-dark"}`}>{state.message}</p>}
   </form>;

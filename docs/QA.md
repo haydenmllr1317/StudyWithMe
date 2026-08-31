@@ -36,14 +36,17 @@ Run this checklist against a fresh deployment at iPhone width (approximately 390
 ## Activity destination (release blocking)
 
 - [ ] Create Circle A and Circle B. Join both as User A; join both as User B.
-- [ ] As User A, finish a session directly into Circle A. Refresh and verify it appears in My Activity and Circle A, but not Circle B.
+- [ ] As User A, finish a session directly into Circle A. Verify it appears in My Activity and Circle A, but not Circle B.
+- [ ] Finish one 60-minute session shared to both Circles. Verify it appears once in All Circles, appears in both individual feeds, counts as 60 minutes personally, and contributes 60 minutes independently to each Circle.
 - [ ] Finish a Personal session. In History, expand it, change Activity destination to Circle A, save, and verify its duration, goal, rating, reflection, photo, and timestamps are unchanged.
-- [ ] Move that session Circle A → Circle B. Without a hard refresh or PWA restart, navigate to both feeds and verify it disappears from A and appears once in B with its existing loves.
-- [ ] Move it Circle B → Personal. Verify it remains in History/My Activity and disappears from both Circle feeds.
+- [ ] Add Circle B to the existing Circle A session. Without a hard refresh or PWA restart, verify it appears in both feeds with the same session ID and existing loves.
+- [ ] Remove Circle A, then remove all Circles. Verify it first remains in B, then remains in History/My Activity while disappearing from both Circle feeds.
 - [ ] Submit a modified request containing a Circle ID User A does not belong to. Verify the mutation returns the membership error and does not silently select Personal.
 - [ ] Assign a session to Circle A, then remove User A or leave as User A. Verify the session remains in User A’s History but no longer appears to Circle A members; old lovers cannot load its photo or liker list.
 - [ ] Assign a session to a disposable Circle, then delete the Circle. Verify the session and reflection survive and its destination reads Personal in History.
 - [ ] Repeat completion and History reassignment at approximately 390×844 using keyboard and touch; verify the select and save controls remain fully visible and labeled.
+- [ ] As User B, love the shared session from Circle A. Verify one love appears in both feeds, User A receives one unread notification, and opening Notifications clears the indicator.
+- [ ] As a third member viewing through Circle B, love the same session. Verify both feeds show two loves and one user cannot love twice through multiple Circle views.
 
 ## Leaderboards, groups, and invites
 

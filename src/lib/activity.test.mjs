@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { activityScopeAllowed, parseActivityFeed, parseActivityScope } from "./activity.ts";
+import { parseNotifications } from "./notifications.ts";
 
 const circleId = "123e4567-e89b-42d3-a456-426614174000";
 
@@ -10,6 +11,11 @@ test("activity scopes accept only safe built-ins and circle UUIDs", () => {
   assert.equal(parseActivityScope("circle:not-a-uuid"), "all_circles");
   assert.equal(activityScopeAllowed(`circle:${circleId}`, [{ id: circleId, name: "Friends", role: "member", memberCount: 2 }]), true);
   assert.equal(activityScopeAllowed(`circle:${circleId}`, []), false);
+});
+
+test("notification parser keeps stable actor and session identities", () => {
+  const items=parseNotifications([{id:circleId,sessionId:circleId,actorDisplayName:"Alex",actorUsername:"alex",createdAt:"2026-08-30T18:00:00Z",read:false,recipientEmail:"private@example.com"}]);
+  assert.deepEqual(items,[{id:circleId,sessionId:circleId,actorDisplayName:"Alex",actorUsername:"alex",createdAt:"2026-08-30T18:00:00Z",read:false}]);
 });
 
 test("activity parser keeps only the feed-safe projection", () => {

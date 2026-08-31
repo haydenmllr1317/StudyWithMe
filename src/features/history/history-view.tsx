@@ -14,7 +14,7 @@ import type { GroupSummary } from "@/lib/groups";
 import { formatDuration } from "@/lib/sessions/format";
 import type { Tables } from "@/types/database";
 
-type Session = Tables<"study_sessions"> & { goalName: string; reflectionPhotoUrl?: string | null };
+type Session = Tables<"study_sessions"> & { goalName: string; circleIds: string[]; reflectionPhotoUrl?: string | null };
 type Goal = Pick<Tables<"study_goals">, "id" | "name" | "is_archived" | "daily_target_minutes" | "weekly_target_minutes">;
 const initial: SessionActionState = { status: "idle" };
 
@@ -41,7 +41,7 @@ function SessionRow({ session, circles, timezone, onDeleted }: { session: Sessio
     </button>
     {open && <div className="mt-5 border-t border-line pt-5 sm:ml-[13rem]">
       <p className="text-sm text-muted">{current.notes || "No session note."}</p>
-      <ReflectionForm circles={circles} initialActivityCircleId={current.activity_circle_id} initialNotes={current.notes ?? ""} initialPhotoPath={current.reflection_photo_path} initialPhotoUrl={current.reflectionPhotoUrl} initialRating={current.rating} onSaved={(updated)=>setCurrent({...current,...updated})} sessionId={current.id} showAudience/>
+      <ReflectionForm circles={circles} initialActivityCircleIds={current.circleIds} initialNotes={current.notes ?? ""} initialPhotoPath={current.reflection_photo_path} initialPhotoUrl={current.reflectionPhotoUrl} initialRating={current.rating} onSaved={(updated,circleIds)=>setCurrent({...current,...updated,circleIds})} sessionId={current.id} showAudience/>
       <button className="mt-3 min-h-11 text-sm text-muted underline" onClick={() => setConfirm(true)} type="button">Delete session</button>
       {confirm && <form action={deleteAction} className="mt-4 border-t border-line pt-4"><input name="sessionId" type="hidden" value={current.id} /><p className="text-sm text-coral-dark">Delete permanently? Today totals, streaks, and Activity will change.</p><div className="mt-3 flex flex-wrap gap-4"><DeleteButton /><button className="min-h-11" onClick={() => setConfirm(false)} type="button">Cancel</button></div>{deleteState.status === "error" && deleteState.message && <p aria-live="polite" className="mt-2 text-sm text-coral-dark">{deleteState.message}</p>}</form>}
     </div>}

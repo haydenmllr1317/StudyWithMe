@@ -11,7 +11,7 @@ auth.users
 profiles
     ├──< study_goals
     │         └──< study_sessions (optional goal)
-    ├──< study_sessions
+    ├──< study_sessions >── session_circle_shares ──> groups
     ├──< groups (owner)
     └──< group_members >── groups
 ```
@@ -20,8 +20,9 @@ profiles
 
 - `profiles`: one social identity per Auth user. The primary key references `auth.users` with cascade deletion. Usernames use `citext` for case-insensitive uniqueness and a normalized format. `timezone` stores an IANA name for local calendar boundaries. Identity is rendered with initials; profile photos are retired.
 - `study_goals`: private, user-owned study categories with optional descriptions and daily/weekly targets. Archiving preserves session history.
-- `study_sessions`: source-of-truth time intervals. A session is either active (`ended_at` and `duration_seconds` are null) or completed with a non-negative, internally consistent duration. The composite goal foreign key prevents assigning another user’s goal. A partial unique index permits only one active session per user. `activity_circle_id` is the canonical Activity destination: `null` means Personal and a Circle ID means exactly that Circle. The foreign key uses `on delete set null`, so deleting a Circle safely returns its sessions to Personal without deleting study history. `share_notes` mirrors whether the session has a Circle destination and is retained for compatibility with privacy-safe reflection projection.
-- `session_circle_shares`: a private, database-maintained one-row projection of `study_sessions.activity_circle_id` retained for compatibility with existing analytics joins. A unique session index and trigger prevent it from representing multiple destinations. Activity feeds read `study_sessions.activity_circle_id` directly, so social placement cannot disappear because of projection drift. Clients have no direct write privileges; it is not a second source of truth.
+- `study_sessions`: source-of-truth time intervals. A session is either active (`ended_at` and `duration_seconds` are null) or completed with a non-negative, internally consistent duration. The composite goal foreign key prevents assigning another user’s goal. A partial unique index permits only one active session per user. `activity_circle_id` remains a nullable compatibility pointer to the first selected Circle so older clients and existing rows continue to work; it is not used to count or authorize multi-Circle visibility.
+- `session_circle_shares`: the authoritative many-to-many relationship between one completed session and its selected Circles. Its composite primary key prevents duplicate placement in one Circle, and cascading foreign keys remove placements when either the session or Circle is deleted. Authors may read their own bounded share rows for History; writes are restricted to validated RPCs.
+- `notifications`: durable like notifications keyed to recipient, actor, and the underlying session. RLS denies direct client access; authenticated RPCs return only the caller’s notifications and mark only the caller’s rows read.
 - `groups`: owner-controlled private study circles with unique 192-bit invite tokens. Tokens are visible only to owners through an authorized group-detail RPC.
 - `group_members`: unique group/user memberships with only `owner` and `member` roles. Creating a group automatically creates its protected owner membership.
 
@@ -60,20 +61,20 @@ Authenticated clients have `SELECT` access to their session rows, while direct `
 
 - `start_study_session` verifies the authenticated user, locks and verifies an owned active goal, uses `clock_timestamp()` for `started_at`, and relies on the partial unique index as the final one-active-session guard.
 - `finish_study_session` locks the owned row, is idempotent when another client already finished it, and calculates `ended_at` and `duration_seconds` together from database timestamps.
-- `update_study_session_reflection` updates notes, rating, photo path, and the Activity destination on an owned completed session. It accepts either Personal (`null`) or one current Circle membership and rejects unauthorized Circle IDs instead of falling back.
+- `update_study_session_reflection` updates notes, rating, photo path, and all selected Circle destinations on an owned completed session. It validates every Circle membership and rejects unauthorized or duplicate IDs atomically instead of partially applying the selection.
 - `pause_study_session` and `resume_study_session` persist pause boundaries and accumulated paused seconds. Final duration subtracts all paused time, including a session finished while paused.
 
 Pomodoro sessions persist `pomodoro_minutes` as either 25 or 50. Active rows may carry `paused_at`; completed rows always clear it. These fields keep recovery timestamp-based across refreshes and device suspension.
 
 These functions are intentionally `security definer` Data API endpoints because direct table writes are revoked. They use an empty `search_path`, explicitly require `auth.uid()`, constrain every lookup by ownership, expose no ownership or timestamp parameters, and have `EXECUTE` revoked from `PUBLIC` and `anon`. Supabase Security Advisor reports authenticated-callable security-definer functions as review warnings; for these lifecycle endpoints that exposure is deliberate and their explicit checks are the security boundary.
 
-Editing from History updates the original session rather than creating or copying it. Duration, goal, timestamps, rating, reflection text/photo, and love rows remain attached to that session while its destination changes. Moving to Personal makes reflection content private to the owner; moving to a Circle makes the existing reflection available through the same privacy-filtered Activity projection.
+Editing from History updates the original session rather than creating or copying it. Duration, goal, timestamps, rating, reflection text/photo, and love rows remain attached to that session while its Circle associations change. Removing every Circle makes reflection content private to the owner; selecting Circles makes the same underlying reflection available through each authorized Circle feed.
 
 ## Activity feed
 
 `get_activity_feed(scope, group_id, before_ended_at, before_id, limit)` is the only cross-user session feed endpoint. It is authenticated-only, uses an empty `search_path`, validates every input, and returns a fixed JSON projection containing public identity, the associated goal name, positive completed duration, minute-rounded completion time, rating, current-user state, and destination-safe reflection fields. It never returns user IDs, raw timestamps, active or invalid sessions, private reflections, session types, pause data, goal IDs, profile settings, emails, or arbitrary session columns.
 
-The `mine` scope is ownership/history: it shows the caller’s completed sessions regardless of social destination. Circle scope is social placement: it verifies that the viewer currently belongs to the requested Circle and returns only sessions whose canonical destination is that Circle and whose author is still a current member. Manipulating a Circle ID therefore fails inside PostgreSQL rather than relying on route validation. If an author leaves or is removed, their sessions remain in private History but immediately stop resolving through Circle Activity, photo, liker, and love authorization. Raw `study_sessions` SELECT policy remains owner-only.
+The `mine` scope is ownership/history: it shows the caller’s completed sessions once regardless of how many Circles receive them. Circle scope verifies current viewer membership and joins through `session_circle_shares`; the unified all-Circles feed selects sessions before aggregating destinations, so membership in two selected Circles never duplicates an activity. If an author leaves or is removed, that Circle no longer grants access while any other valid selected Circle remains independent. Raw `study_sessions` SELECT policy remains owner-only.
 
 Activity uses stable `(ended_at, id)` cursor pagination and reads at most 50 rows per call; the application requests 20. Partial global and per-user cursor indexes cover completed positive-duration feed scans without indexing active or zero-duration rows.
 
@@ -83,7 +84,7 @@ Completed sessions may reference one object in the private `reflection-photos` b
 
 The Activity sharing flag governs both notes and the reflection photo. Other users receive neither path unless sharing is enabled. Images are served through an authenticated application route backed by `get_visible_reflection_photo`, which re-checks current ownership/sharing on every request; this avoids the revocation delay of expiring signed URLs when sharing is turned off. Raw session rows remain owner-only.
 
-`session_loves` uses `(session_id, user_id)` as its primary key, so duplicate loves are impossible. Direct table privileges are revoked. `toggle_session_love` derives the user from `auth.uid()`, rejects self-loves and unavailable sessions, and performs add/remove in PostgreSQL. Loves stay attached to the session when its destination changes. Old lovers who lose Circle access cannot retrieve the session, its photo, or its liker list; counts are released only inside an authorized feed row.
+`session_loves` uses `(session_id, user_id)` as its primary key, so duplicate loves are impossible across every Circle view. Direct table privileges are revoked. `toggle_session_love` derives the user from `auth.uid()`, rejects self-loves and unavailable sessions, and creates one persistent notification for a successful first love. Loves stay attached to the session when destinations change. The app checks unread counts in the background and when it becomes visible; opening Notifications marks the recipient’s unread rows read.
 
 ## Timezones
 

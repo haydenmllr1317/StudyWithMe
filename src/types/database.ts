@@ -145,6 +145,21 @@ export type Database = {
           },
         ]
       }
+      session_circle_shares: {
+        Row: { created_at: string; group_id: string; session_id: string }
+        Insert: { created_at?: string; group_id: string; session_id: string }
+        Update: { created_at?: string; group_id?: string; session_id?: string }
+        Relationships: [
+          { foreignKeyName: "session_circle_shares_group_id_fkey"; columns: ["group_id"]; isOneToOne: false; referencedRelation: "groups"; referencedColumns: ["id"] },
+          { foreignKeyName: "session_circle_shares_session_id_fkey"; columns: ["session_id"]; isOneToOne: false; referencedRelation: "study_sessions"; referencedColumns: ["id"] },
+        ]
+      }
+      notifications: {
+        Row: { actor_id: string; created_at: string; id: string; kind: string; read_at: string | null; recipient_id: string; session_id: string }
+        Insert: { actor_id: string; created_at?: string; id?: string; kind: string; read_at?: string | null; recipient_id: string; session_id: string }
+        Update: { actor_id?: string; created_at?: string; id?: string; kind?: string; read_at?: string | null; recipient_id?: string; session_id?: string }
+        Relationships: []
+      }
       study_goals: {
         Row: {
           created_at: string
@@ -321,6 +336,8 @@ export type Database = {
         Returns: Json
       }
       get_my_study_groups: { Args: never; Returns: Json }
+      get_notifications: { Args: { p_limit?: number }; Returns: Json }
+      get_unread_notification_count: { Args: never; Returns: number }
       get_personal_history_stats: { Args: { p_days?: number }; Returns: Json }
       get_session_likers: { Args: { p_session_id: string }; Returns: Json }
       get_study_analytics: {
@@ -356,7 +373,7 @@ export type Database = {
       }
       create_manual_study_session: {
         Args: {
-          p_activity_circle_id?: string | null
+          p_activity_circle_ids: string[]
           p_duration_minutes: number
           p_goal_id: string
           p_local_date: string
@@ -369,6 +386,7 @@ export type Database = {
       is_username_available: { Args: { candidate: string }; Returns: boolean }
       join_study_group: { Args: { p_token: string }; Returns: string }
       leave_study_group: { Args: { p_group_id: string }; Returns: undefined }
+      mark_notifications_read: { Args: { p_notification_id?: string }; Returns: number }
       pause_study_session: {
         Args: { p_session_id: string }
         Returns: {
@@ -527,7 +545,7 @@ export type Database = {
           }
         | {
             Args: {
-              p_activity_circle_id?: string | null
+              p_activity_circle_ids: string[]
               p_notes: string
               p_rating: number
               p_reflection_photo_path: string

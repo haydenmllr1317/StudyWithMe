@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Container } from "@/components/layout/container";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 
 const items = [
   { label: "Today", mobileLabel: "Today", href: "/today" },
@@ -12,7 +13,7 @@ const items = [
   { label: "Profile", mobileLabel: "Profile", href: "/profile" },
 ] as const;
 
-export function Navigation() {
+export function Navigation({ unreadNotificationCount = 0 }: { unreadNotificationCount?: number }) {
   const pathname = usePathname();
   return <>
     <header className="sticky top-0 z-30 border-b border-line bg-paper/95 pt-[env(safe-area-inset-top)] backdrop-blur-sm">
@@ -20,10 +21,10 @@ export function Navigation() {
         <Link className="text-sm font-semibold tracking-[-0.035em] text-ink" href="/today">
           StudyWithMe<span className="text-coral">.</span>
         </Link>
-        <nav aria-label="Primary" className="hidden h-full items-center gap-6 md:flex lg:gap-8">{items.map((item) => {
+        <div className="flex h-full items-center gap-2"><nav aria-label="Primary" className="hidden h-full items-center gap-6 md:flex lg:gap-8">{items.map((item) => {
           const active = pathname === item.href || (item.href === "/leaderboard" && pathname.startsWith("/groups/"));
           return <Link aria-current={active ? "page" : undefined} className={`relative flex h-full items-center text-sm transition-colors ${active ? "font-semibold text-ink" : "font-medium text-muted hover:text-ink"}`} href={item.href} key={item.href}>{item.label}{active && <span className="absolute bottom-[0.9rem] left-1/2 size-1 -translate-x-1/2 rounded-full bg-coral" />}</Link>;
-        })}</nav>
+        })}</nav><NotificationBell initialUnreadCount={unreadNotificationCount}/></div>
       </Container>
     </header>
     <nav aria-label="Primary mobile" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden">

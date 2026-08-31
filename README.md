@@ -1,6 +1,6 @@
 # StudyWithMe
 
-StudyWithMe is a mobile-first social study and time-tracking application for iPhone and desktop browsers. The MVP includes Supabase authentication, user-owned study goals, persistent normal and 25/50-minute Pomodoro sessions with pause/resume, personal history/statistics, application-wide rankings, private study groups, and installable PWA support.
+StudyWithMe is a mobile-first social study and time-tracking application for iPhone and desktop browsers. The MVP includes Supabase authentication, user-owned study goals, persistent normal and 25/50-minute Pomodoro sessions with pause/resume, personal history/statistics, private study Circles, multi-Circle activity sharing, shared loves with in-app notifications, and installable PWA support.
 
 ## Technology stack
 
